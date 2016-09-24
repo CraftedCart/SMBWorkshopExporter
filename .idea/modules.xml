@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/smbworkshopexporter.iml" filepath="$PROJECT_DIR$/.idea/modules/smbworkshopexporter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/smbworkshopexporter_main.iml" filepath="$PROJECT_DIR$/.idea/modules/smbworkshopexporter_main.iml" group="smbworkshopexporter" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/smbworkshopexporter_test.iml" filepath="$PROJECT_DIR$/.idea/modules/smbworkshopexporter_test.iml" group="smbworkshopexporter" />
+    </modules>
+  </component>
+</project>
