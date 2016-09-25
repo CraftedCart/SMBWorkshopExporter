@@ -29,7 +29,7 @@ public class ConfigData {
         InputStreamReader isr = new InputStreamReader(fis);
         BufferedReader br = new BufferedReader(isr);
 
-        Pattern p = Pattern.compile("(.*) \\[ (\\d) \\] \\. (.*) \\. (.*) = (.*)");
+        Pattern p = Pattern.compile("(.*) \\[ (.*) \\] \\. (.*) \\. (.*) = (.*)");
 
         String line;
 
