@@ -1,7 +1,6 @@
 package craftedcart.smbworkshopexporter;
 
-import craftedcart.smbworkshopexporter.util.LogHelper;
-import craftedcart.smbworkshopexporter.util.Vec3f;
+import craftedcart.smbworkshopexporter.util.*;
 
 import java.io.*;
 import java.util.Map;
@@ -11,8 +10,23 @@ import java.util.Map;
  *         Created on 21/09/2016 (DD/MM/YYYY)
  */
 public class LZExporter {
+    
+    public EnumLZExportTask currentTask = EnumLZExportTask.EXPORT_CONFIG;
+    public int cfgBytesToWrite = 0;
+    public int cfgBytesWritten = 0;
+    public int colBytesToWrite = 0;
+    public int colBytesWritten = 0;
+    public int lzBytesToWrite = 0;
+    public int lzBytesWritten = 0;
 
-    public static void writeLZ(ModelData modelData, ConfigData configData, File outDir) throws IOException {
+    private TaskDoneAction taskDoneAction;
+
+    public void writeLZ(ModelData modelData, ConfigData configData, File outDir, TaskDoneAction taskDoneAction) throws IOException {
+        this.taskDoneAction = taskDoneAction;
+        writeLZ(modelData, configData, outDir);
+    }
+
+    public void writeLZ(ModelData modelData, ConfigData configData, File outDir) throws IOException {
 
         File tempCfgFile = new File(outDir, "tempcfg.lz.raw.part");
         File tempColFile = new File(outDir, "tempcol.lz.raw.part");
@@ -23,7 +37,33 @@ public class LZExporter {
             throw new IOException("Failed to make directories");
         }
 
+        cfgBytesToWrite =
+                        20 * configData.goalList.size() +
+                        32 * configData.bumperList.size() +
+                        32 * configData.jamabarList.size() +
+                        16 * configData.bananaList.size();
+
+        for (int i = 0; i < modelData.cmnObjs.size(); i++) {
+            Obj obj = modelData.cmnObjs.get(i);
+
+            for (int j = 0; j < obj.tris.size(); j++) {
+                colBytesToWrite += 64;
+            }
+        }
+
+        lzBytesToWrite = 2000 + cfgBytesToWrite + colBytesToWrite + (512 * Math.floorDiv(colBytesToWrite, 64)) + (modelData.cmnObjNames.size() * 12);
+        for (String name : modelData.cmnObjNames) {
+            lzBytesToWrite += name.length();
+        }
+        if (lzBytesToWrite % 8 == 4) {
+            lzBytesToWrite += 4;
+        }
+        while (lzBytesToWrite % 4 != 0) {
+            lzBytesToWrite++;
+        }
+        
         //Write config
+        
         RandomAccessFile rafConfig = new RandomAccessFile(tempCfgFile, "rw");
 
         int[] sectOffsets = new int[4];
@@ -44,17 +84,17 @@ public class LZExporter {
             }
 
             //Write position
-            rafConfig.writeFloat(goal.posX);
-            rafConfig.writeFloat(goal.posY);
-            rafConfig.writeFloat(goal.posZ);
+            cfgWriteFloat(rafConfig, goal.posX);
+            cfgWriteFloat(rafConfig, goal.posY);
+            cfgWriteFloat(rafConfig, goal.posZ);
 
             //Write rotation
-            rafConfig.writeShort(cnvAngle(goal.rotX));
-            rafConfig.writeShort(cnvAngle(goal.rotY));
-            rafConfig.writeShort(cnvAngle(goal.rotZ));
+            cfgWriteShort(rafConfig, (cnvAngle(goal.rotX)));
+            cfgWriteShort(rafConfig, (cnvAngle(goal.rotY)));
+            cfgWriteShort(rafConfig, (cnvAngle(goal.rotZ)));
 
             //Write type
-            rafConfig.writeShort(type);
+            cfgWriteShort(rafConfig, (type));
         }
         sectOffsets[1] = (int) (rafConfig.getFilePointer() + 256);
 
@@ -63,22 +103,22 @@ public class LZExporter {
             Bumper bumper = entry.getValue();
 
             //Write position
-            rafConfig.writeFloat(bumper.posX);
-            rafConfig.writeFloat(bumper.posY);
-            rafConfig.writeFloat(bumper.posZ);
+            cfgWriteFloat(rafConfig, bumper.posX);
+            cfgWriteFloat(rafConfig, bumper.posY);
+            cfgWriteFloat(rafConfig, bumper.posZ);
 
             //Write rotation
-            rafConfig.writeShort(cnvAngle(bumper.rotX));
-            rafConfig.writeShort(cnvAngle(bumper.rotY));
-            rafConfig.writeShort(cnvAngle(bumper.rotZ));
+            cfgWriteShort(rafConfig, (cnvAngle(bumper.rotX)));
+            cfgWriteShort(rafConfig, (cnvAngle(bumper.rotY)));
+            cfgWriteShort(rafConfig, (cnvAngle(bumper.rotZ)));
 
-            rafConfig.write(0);
-            rafConfig.write(0);
+            cfgWrite(rafConfig, 0);
+            cfgWrite(rafConfig, 0);
 
             //Write scale
-            rafConfig.writeFloat(bumper.sclX);
-            rafConfig.writeFloat(bumper.sclY);
-            rafConfig.writeFloat(bumper.sclZ);
+            cfgWriteFloat(rafConfig, bumper.sclX);
+            cfgWriteFloat(rafConfig, bumper.sclY);
+            cfgWriteFloat(rafConfig, bumper.sclZ);
         }
         sectOffsets[2] = (int) (rafConfig.getFilePointer() + 256);
 
@@ -87,22 +127,22 @@ public class LZExporter {
             Jamabar jamabar = entry.getValue();
 
             //Write position
-            rafConfig.writeFloat(jamabar.posX);
-            rafConfig.writeFloat(jamabar.posY);
-            rafConfig.writeFloat(jamabar.posZ);
+            cfgWriteFloat(rafConfig, jamabar.posX);
+            cfgWriteFloat(rafConfig, jamabar.posY);
+            cfgWriteFloat(rafConfig, jamabar.posZ);
 
             //Write rotation
-            rafConfig.writeShort(cnvAngle(jamabar.rotX));
-            rafConfig.writeShort(cnvAngle(jamabar.rotY));
-            rafConfig.writeShort(cnvAngle(jamabar.rotZ));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotX)));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotY)));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotZ)));
 
-            rafConfig.write(0);
-            rafConfig.write(0);
+            cfgWrite(rafConfig, 0);
+            cfgWrite(rafConfig, 0);
 
             //Write scale
-            rafConfig.writeFloat(jamabar.sclX);
-            rafConfig.writeFloat(jamabar.sclY);
-            rafConfig.writeFloat(jamabar.sclZ);
+            cfgWriteFloat(rafConfig, jamabar.sclX);
+            cfgWriteFloat(rafConfig, jamabar.sclY);
+            cfgWriteFloat(rafConfig, jamabar.sclZ);
         }
         sectOffsets[3] = (int) (rafConfig.getFilePointer() + 256);
 
@@ -111,12 +151,12 @@ public class LZExporter {
             Banana banana = entry.getValue();
 
             //Write position
-            rafConfig.writeFloat(banana.posX);
-            rafConfig.writeFloat(banana.posY);
-            rafConfig.writeFloat(banana.posZ);
+            cfgWriteFloat(rafConfig, banana.posX);
+            cfgWriteFloat(rafConfig, banana.posY);
+            cfgWriteFloat(rafConfig, banana.posZ);
 
             //Write type
-            rafConfig.writeInt(banana.type);
+            cfgWriteInt(rafConfig, banana.type);
         }
 
         rafConfig.close();
@@ -124,6 +164,8 @@ public class LZExporter {
         if (SMBWorkshopExporter.verboseLogging) {
             LogHelper.trace(LZExporter.class, "Done exporting tempcfg.lz.raw.part");
         }
+
+        setCurrentTask(EnumLZExportTask.EXPORT_COLLISION);
 
         //Write collision triangles
         RandomAccessFile rafCol = new RandomAccessFile(tempColFile, "rw");
@@ -179,26 +221,26 @@ public class LZExporter {
                 float rot_y = 360.0f - reverseAngle(cy, sy);
                 float rot_z = 360.0f - reverseAngle(cz, sz);
 
-                rafCol.writeFloat(a.x);
-                rafCol.writeFloat(a.y);
-                rafCol.writeFloat(a.z);
+                colWriteFloat(rafCol, a.x);
+                colWriteFloat(rafCol, a.y);
+                colWriteFloat(rafCol, a.z);
 
-                rafCol.writeFloat(normal.x);
-                rafCol.writeFloat(normal.y);
-                rafCol.writeFloat(normal.z);
-                rafCol.writeShort(cnvAngle(rot_x));
-                rafCol.writeShort(cnvAngle(rot_y));
-                rafCol.writeShort(cnvAngle(rot_z));
-                rafCol.write(0);
-                rafCol.write(0);
-                rafCol.writeFloat(dotrz.x);
-                rafCol.writeFloat(dotrz.y);
-                rafCol.writeFloat(dotrzrxry.x);
-                rafCol.writeFloat(dotrzrxry.y);
-                rafCol.writeFloat(n0.x);
-                rafCol.writeFloat(n0.y);
-                rafCol.writeFloat(n1.x);
-                rafCol.writeFloat(n1.y);
+                colWriteFloat(rafCol, normal.x);
+                colWriteFloat(rafCol, normal.y);
+                colWriteFloat(rafCol, normal.z);
+                colWriteShort(rafCol, (cnvAngle(rot_x)));
+                colWriteShort(rafCol, (cnvAngle(rot_y)));
+                colWriteShort(rafCol, (cnvAngle(rot_z)));
+                colWrite(rafCol, 0);
+                colWrite(rafCol, 0);
+                colWriteFloat(rafCol, dotrz.x);
+                colWriteFloat(rafCol, dotrz.y);
+                colWriteFloat(rafCol, dotrzrxry.x);
+                colWriteFloat(rafCol, dotrzrxry.y);
+                colWriteFloat(rafCol, n0.x);
+                colWriteFloat(rafCol, n0.y);
+                colWriteFloat(rafCol, n1.x);
+                colWriteFloat(rafCol, n1.y);
             }
 
         }
@@ -208,6 +250,8 @@ public class LZExporter {
         if (SMBWorkshopExporter.verboseLogging) {
             LogHelper.trace(LZExporter.class, "Done exporting tempcol.lz.raw.part");
         }
+
+        setCurrentTask(EnumLZExportTask.EXPORT_LZ);
 
         //Write complete (uncompressed) file
         RandomAccessFile rafReadCfg = new RandomAccessFile(tempCfgFile, "r");
@@ -219,288 +263,282 @@ public class LZExporter {
         int realColSize = colSize + 0xB8 + (0x200 * (colSize / 0x40)) + 0x600;
 
         for (int i = 0; i < 7; i++) { //Write 7x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
-        rafOutRaw.write(100);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(1);
-        rafOutRaw.writeInt(cfgSize + 256);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(160);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(180);
+        lzWrite(rafOutRaw, 100);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 1);
+        lzWriteInt(rafOutRaw, cfgSize + 256);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 160);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 180);
 
         //Write goals
         int goalCount = configData.goalList.size();
         if (goalCount > 0) {
-            rafOutRaw.writeInt(goalCount);
-            rafOutRaw.writeInt(sectOffsets[0]);
-            rafOutRaw.writeInt(goalCount);
+            lzWriteInt(rafOutRaw, goalCount);
+            lzWriteInt(rafOutRaw, sectOffsets[0]);
+            lzWriteInt(rafOutRaw, goalCount);
         } else {
             for (int i = 0; i < 12; i++) { //Write 12x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
 
         //Write bumpers
         int bumperCount = configData.bumperList.size();
         if (bumperCount > 0) {
-            rafOutRaw.writeInt(bumperCount);
-            rafOutRaw.writeInt(sectOffsets[1]);
+            lzWriteInt(rafOutRaw, bumperCount);
+            lzWriteInt(rafOutRaw, sectOffsets[1]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
         //Write jamabars
         int jamabarCount = configData.jamabarList.size();
         if (jamabarCount > 0) {
-            rafOutRaw.writeInt(jamabarCount);
-            rafOutRaw.writeInt(sectOffsets[2]);
+            lzWriteInt(rafOutRaw, jamabarCount);
+            lzWriteInt(rafOutRaw, sectOffsets[2]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
         //Write bananas
         int bananaCount = configData.bananaList.size();
         if (bananaCount > 0) {
-            rafOutRaw.writeInt(bananaCount);
-            rafOutRaw.writeInt(sectOffsets[3]);
+            lzWriteInt(rafOutRaw, bananaCount);
+            lzWriteInt(rafOutRaw, sectOffsets[3]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
         for (int i = 0; i < 24; i++) { //Write 24x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
 
         int tallyObjNames = modelData.cmnObjNames.size();
-        rafOutRaw.writeInt(tallyObjNames + 1);
-        rafOutRaw.writeInt(realColSize + cfgSize + 256); //Diff
+        lzWriteInt(rafOutRaw, tallyObjNames + 1);
+        lzWriteInt(rafOutRaw, realColSize + cfgSize + 256); //Diff
 
         for (int i = 0; i < 31; i++) { //Write 31x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
-        rafOutRaw.write(1);
+        lzWrite(rafOutRaw, 1);
         for (int i = 0; i < 32; i++) { //Write 32x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
         //Write start pos
         Start start = configData.startList.entrySet().iterator().next().getValue();
-        rafOutRaw.writeFloat(start.posX);
-        rafOutRaw.writeFloat(start.posY);
-        rafOutRaw.writeFloat(start.posZ);
+        lzWriteFloat(rafOutRaw, start.posX);
+        lzWriteFloat(rafOutRaw, start.posY);
+        lzWriteFloat(rafOutRaw, start.posZ);
 
-        rafOutRaw.writeShort(cnvAngle(start.rotX));
-        rafOutRaw.writeShort(cnvAngle(start.rotY));
-        rafOutRaw.writeShort(cnvAngle(start.rotZ));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rotX)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rotY)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rotZ)));
 
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
 
         //Write fallout pos
-        rafOutRaw.writeFloat(configData.falloutPlane);
+        lzWriteFloat(rafOutRaw, configData.falloutPlane);
 
-        rafOutRaw.write(((12 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) >> 24) & 0xFF);
-        rafOutRaw.write(((12 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) >> 16) & 0xFF);
-        rafOutRaw.write(((12 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) >> 8) & 0xFF);
-        rafOutRaw.write((12 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) & 0xFF);
-        rafOutRaw.write(((4 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) >> 24) & 0xFF);
-        rafOutRaw.write(((4 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) >> 16) & 0xFF);
-        rafOutRaw.write(((4 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) >> 8) & 0xFF);
-        rafOutRaw.write((4 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256) & 0xFF);
+        lzWriteInt(rafOutRaw, ((12 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256)));
+        lzWriteInt(rafOutRaw, ((4 + ((tallyObjNames + 1) * 12) + realColSize + cfgSize + 256)));
 
         for (int i = 0; i < 64; i++) { //Write 64x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
 
         //Write tempcfg.lz.raw.part into output.lz.raw
         for (int i = 0; i < cfgSize; i++) {
-            rafOutRaw.write(rafReadCfg.read());
+            lzWrite(rafOutRaw, rafReadCfg.read());
         }
 
         int whereAreWe = (int) rafOutRaw.getFilePointer();
 
         for (int i = 0; i < 27; i++) { //Write 27x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
 
-        rafOutRaw.write(0xB8);
+        lzWrite(rafOutRaw, 0xB8);
 
-        rafOutRaw.writeInt(whereAreWe + 0xB8);
-        rafOutRaw.writeInt(whereAreWe + 0x2B8 + colSize + (0x200 * colSize / 0x40));
-        rafOutRaw.write(0xC3);
-        rafOutRaw.write(0x80);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0xC3);
-        rafOutRaw.write(0x80);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0x42);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0x42);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(16);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(16);
+        lzWriteInt(rafOutRaw, whereAreWe + 0xB8);
+        lzWriteInt(rafOutRaw, whereAreWe + 0x2B8 + colSize + (0x200 * colSize / 0x40));
+        lzWrite(rafOutRaw, 0xC3);
+        lzWrite(rafOutRaw, 0x80);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0xC3);
+        lzWrite(rafOutRaw, 0x80);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0x42);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0x42);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 16);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 16);
 
         //Write goals (again)
         if (goalCount > 0) {
-            rafOutRaw.writeInt(goalCount);
-            rafOutRaw.writeInt(sectOffsets[0]);
+            lzWriteInt(rafOutRaw, goalCount);
+            lzWriteInt(rafOutRaw, sectOffsets[0]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
         for (int i = 0; i < 8; i++) { //Write 8x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
 
         //Write bumpers (again)
         if (bumperCount > 0) {
-            rafOutRaw.writeInt(bumperCount);
-            rafOutRaw.writeInt(sectOffsets[1]);
+            lzWriteInt(rafOutRaw, bumperCount);
+            lzWriteInt(rafOutRaw, sectOffsets[1]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
         //Write jamabars (again)
         if (jamabarCount > 0) {
-            rafOutRaw.writeInt(jamabarCount);
-            rafOutRaw.writeInt(sectOffsets[2]);
+            lzWriteInt(rafOutRaw, jamabarCount);
+            lzWriteInt(rafOutRaw, sectOffsets[2]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
         //Write bananas (again)
         if (bananaCount > 0) {
-            rafOutRaw.writeInt(bananaCount);
-            rafOutRaw.writeInt(sectOffsets[3]);
+            lzWriteInt(rafOutRaw, bananaCount);
+            lzWriteInt(rafOutRaw, sectOffsets[3]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
-                rafOutRaw.write(0);
+                lzWrite(rafOutRaw, 0);
             }
         }
 
         for (int i = 0; i < 24; i++) { //Write 24x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
 
-        rafOutRaw.writeInt(tallyObjNames + 1 /* - noBgModels */);
-        rafOutRaw.writeInt(realColSize + cfgSize + 256);
+        lzWriteInt(rafOutRaw, tallyObjNames + 1 /* - noBgModels */);
+        lzWriteInt(rafOutRaw, realColSize + cfgSize + 256);
 
         for (int i = 0; i < 52; i++) { //Write 52x 0
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
 
         //Write tempcol.lz.raw.part into output.lz.raw
         for (int i = 0; i < colSize; i++) {
-            rafOutRaw.write(rafReadCol.read());
+            lzWrite(rafOutRaw, rafReadCol.read());
         }
 
         whereAreWe = (int) rafOutRaw.getFilePointer();
 
         for (int i = 0; i < 256; i++) {
-            for (int j=0; j<(colSize / 64); j++)
+            for (int j = 0; j < (colSize / 64); j++)
             {
-                rafOutRaw.write((j >> 8) & 0xFF);
-                rafOutRaw.write(j & 0xFF);
+                lzWrite(rafOutRaw, (j >> 8) & 0xFF);
+                lzWrite(rafOutRaw, j & 0xFF);
             }
-            rafOutRaw.write(0xFF);
-            rafOutRaw.write(0xFF);
+            lzWrite(rafOutRaw, 0xFF);
+            lzWrite(rafOutRaw, 0xFF);
         }
 
         for (int i = 0; i < 256; i++) {
-            rafOutRaw.writeInt(whereAreWe + i * 2 + (i * 2 * (colSize / 0x40)));
+            lzWriteInt(rafOutRaw, whereAreWe + i * 2 + (i * 2 * (colSize / 0x40)));
         }
 
         whereAreWe = (int) rafOutRaw.getFilePointer();
 
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(1);
-        rafOutRaw.writeInt(whereAreWe + 28);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 1);
+        lzWriteInt(rafOutRaw, whereAreWe + 28);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
 
         whereAreWe = (int) rafOutRaw.getFilePointer();
 
         for (int i = 0; i < tallyObjNames; i++) {
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
-            rafOutRaw.write(1);
-            rafOutRaw.writeInt(whereAreWe + 24 + (92 * i));
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 1);
+            lzWriteInt(rafOutRaw, whereAreWe + 24 + (92 * i));
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
         }
 
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write('n');
-        rafOutRaw.write('u');
-        rafOutRaw.write('l');
-        rafOutRaw.write('l');
-        rafOutRaw.write('2');
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
-        rafOutRaw.write(0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 'n');
+        lzWrite(rafOutRaw, 'u');
+        lzWrite(rafOutRaw, 'l');
+        lzWrite(rafOutRaw, 'l');
+        lzWrite(rafOutRaw, '2');
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
+        lzWrite(rafOutRaw, 0);
 
         for (int i = 0; i < tallyObjNames; i++) {
             char[] chars = modelData.cmnObjNames.get(i).toCharArray();
             for (char c : chars) {
-                rafOutRaw.write(c);
+                lzWrite(rafOutRaw, c);
             }
         }
 
         if (rafOutRaw.getFilePointer() % 8 == 4) {
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
         }
 
         while (rafOutRaw.getFilePointer() % 4 != 0) {
-            rafOutRaw.write(0);
+            lzWrite(rafOutRaw, 0);
         }
 
         rafReadCol.close();
@@ -562,6 +600,78 @@ public class LZExporter {
             else a += 360.0;
         }
         return a;
+    }
+    
+    private void cfgWrite(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.write(toWrite);
+        cfgBytesWritten++;
+    }
+
+    private void cfgWriteFloat(RandomAccessFile raf, float toWrite) throws IOException {
+        raf.writeFloat(toWrite);
+        cfgBytesWritten += 4;
+    }
+
+    private void cfgWriteInt(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.writeInt(toWrite);
+        cfgBytesWritten += 4;
+    }
+
+    private void cfgWriteShort(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.writeShort(toWrite);
+        cfgBytesWritten += 2;
+    }
+
+    private void colWrite(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.write(toWrite);
+        colBytesWritten++;
+    }
+
+    private void colWriteFloat(RandomAccessFile raf, float toWrite) throws IOException {
+        raf.writeFloat(toWrite);
+        colBytesWritten += 4;
+    }
+
+    private void colWriteInt(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.writeInt(toWrite);
+        colBytesWritten += 4;
+    }
+
+    private void colWriteShort(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.writeShort(toWrite);
+        colBytesWritten += 2;
+    }
+
+    private void lzWrite(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.write(toWrite);
+        lzBytesWritten++;
+    }
+
+    private void lzWriteFloat(RandomAccessFile raf, float toWrite) throws IOException {
+        raf.writeFloat(toWrite);
+        lzBytesWritten += 4;
+    }
+
+    private void lzWriteInt(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.writeInt(toWrite);
+        lzBytesWritten += 4;
+    }
+
+    private void lzWriteShort(RandomAccessFile raf, int toWrite) throws IOException {
+        raf.writeShort(toWrite);
+        lzBytesWritten += 2;
+    }
+
+    public void setCurrentTask(EnumLZExportTask currentTask) {
+        if (taskDoneAction != null) {
+            taskDoneAction.execute(this.currentTask);
+        }
+
+        this.currentTask = currentTask;
+    }
+
+    public void setTaskDoneAction(TaskDoneAction taskDoneAction) {
+        this.taskDoneAction = taskDoneAction;
     }
 
 }

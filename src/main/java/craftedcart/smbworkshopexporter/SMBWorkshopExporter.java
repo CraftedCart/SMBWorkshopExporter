@@ -105,7 +105,7 @@ public class SMBWorkshopExporter {
 
         LogHelper.info(SMBWorkshopExporter.class, "Writing LZ file...");
         try {
-            LZExporter.writeLZ(modelData, configData, new File(outputFilePath));
+            (new LZExporter()).writeLZ(modelData, configData, new File(outputFilePath));
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "LZ file not found!");
