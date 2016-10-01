@@ -7,6 +7,9 @@ import org.apache.commons.cli.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author CraftedCart
@@ -16,7 +19,7 @@ public class SMBWorkshopExporter {
 
     public static boolean verboseLogging = false;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         Options options = new Options();
 
@@ -28,9 +31,11 @@ public class SMBWorkshopExporter {
         inConfig.setRequired(true);
         options.addOption(inConfig);
 
-        Option outDir = new Option("o", "output", true, "A folder to put exported files into");
-        outDir.setRequired(true);
-        options.addOption(outDir);
+        Option lzOut = new Option("o", "output", true, "The path to the raw LZ output file");
+        options.addOption(lzOut);
+
+        Option compOut = new Option("s", "compressedoutput", true, "The path to the compressed LZ output file"); //S stands for small file
+        options.addOption(compOut);
 
         Option verbose = new Option("v", "verbose", false, "Enables verbose logging");
         options.addOption(verbose);
@@ -46,14 +51,22 @@ public class SMBWorkshopExporter {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -o path/to/output/directory", options);
+            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -s path/to/output/file", options);
+
+            System.exit(1);
+            return;
+        }
+
+        if (!cmd.hasOption("o") && !cmd.hasOption("s")) {
+            System.out.println("Missing output path! Specify with --output (-o) or --compressedoutput (-s) (Or specify both)");
+            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -s path/to/output/file", options);
 
             System.exit(1);
             return;
         }
 
         if (cmd.hasOption("h")) { //Show help
-            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -o path/to/output/directory", options);
+            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -s path/to/output/file", options);
             System.exit(0);
         }
 
@@ -61,7 +74,15 @@ public class SMBWorkshopExporter {
 
         String modelFilePath = cmd.getOptionValue("model");
         String configFilePath = cmd.getOptionValue("config");
-        String outputFilePath = cmd.getOptionValue("output");
+        File outputFile;
+        if (cmd.getOptionValue("output") != null) {
+            outputFile = new File(cmd.getOptionValue("output"));
+        } else {
+            File temp = File.createTempFile("SMBWorkshopExporter", ".lz.raw");
+            temp.deleteOnExit();
+            outputFile = temp;
+        }
+        String compressedOutputFilePath = cmd.getOptionValue("compressedoutput");
 
         LogHelper.info(SMBWorkshopExporter.class, "Parsing OBJ File...");
         ModelData modelData = new ModelData();
@@ -103,17 +124,55 @@ public class SMBWorkshopExporter {
             System.exit(0);
         }
 
-        LogHelper.info(SMBWorkshopExporter.class, "Writing LZ file...");
+        LogHelper.info(SMBWorkshopExporter.class, "Writing raw LZ file...");
         try {
-            (new LZExporter()).writeLZ(modelData, configData, new File(outputFilePath));
+            (new LZExporter()).writeRawLZ(modelData, configData, outputFile);
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
-                LogHelper.fatal(SMBWorkshopExporter.class, "LZ file not found!");
+                LogHelper.fatal(SMBWorkshopExporter.class, "Raw LZ file not found!");
             } else {
-                LogHelper.fatal(SMBWorkshopExporter.class, "LZ file: IOException");
+                LogHelper.fatal(SMBWorkshopExporter.class, "Raw LZ file: IOException");
             }
             LogHelper.fatal(SMBWorkshopExporter.class, e);
             System.exit(0);
+        }
+
+        if (cmd.hasOption("s") && compressedOutputFilePath != null) {
+            LogHelper.info(SMBWorkshopExporter.class, "Compressing raw LZ file...");
+
+            File outFile = new File(compressedOutputFilePath);
+
+            if (outFile.exists()) { //Delete the file and recreate it if it exists
+                if (!outFile.delete()) {
+                    LogHelper.warn(SMBWorkshopExporter.class, "Failed to delete original LZ file: " + outFile.getAbsolutePath());
+                    LogHelper.warn(SMBWorkshopExporter.class, "Output raw LZ file may be corrupt");
+                }
+            }
+
+            try (RandomAccessFile raw = new RandomAccessFile(outputFile, "r");
+                    RandomAccessFile comp = new RandomAccessFile(outFile, "rw")) {
+
+                final List<Byte> contents = new ArrayList<>();
+                while (raw.getFilePointer() < raw.length()) {
+                    contents.add(raw.readByte());
+                }
+
+                final Byte[] byteArray = contents.toArray(new Byte[contents.size()]);
+                List<Byte> bl = LZCompressor.compress(byteArray);
+
+                for (Byte c : bl) {
+                    comp.write(c);
+                }
+
+            } catch (IOException e) {
+                if (e instanceof FileNotFoundException) {
+                    LogHelper.fatal(SMBWorkshopExporter.class, "LZ file not found!");
+                } else {
+                    LogHelper.fatal(SMBWorkshopExporter.class, "LZ file: IOException");
+                }
+                LogHelper.fatal(SMBWorkshopExporter.class, e);
+                System.exit(0);
+            }
         }
 
         LogHelper.info(SMBWorkshopExporter.class, "Done!");

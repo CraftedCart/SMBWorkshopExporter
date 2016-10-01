@@ -26,20 +26,21 @@ public class LZExporter {
 
     private TaskDoneAction taskDoneAction;
 
-    public void writeLZ(ModelData modelData, ConfigData configData, File outDir, TaskDoneAction taskDoneAction) throws IOException {
-        this.taskDoneAction = taskDoneAction;
-        writeLZ(modelData, configData, outDir);
-    }
+    public void writeRawLZ(ModelData modelData, ConfigData configData, File outFile) throws IOException {
 
-    public void writeLZ(ModelData modelData, ConfigData configData, File outDir) throws IOException {
+        File tempCfgFile = File.createTempFile("tempcfg", ".lz.raw.part");
+        File tempColFile = File.createTempFile("tempcol", ".lz.raw.part");
 
-        File tempCfgFile = new File(outDir, "tempcfg.lz.raw.part");
-        File tempColFile = new File(outDir, "tempcol.lz.raw.part");
-        File outputRawFile = new File(outDir, "output.lz.raw");
-
-        boolean madeDirs = outDir.mkdirs();
-        if (!madeDirs && !outDir.exists()) {
+        boolean madeDirs = outFile.getParentFile().mkdirs();
+        if (!madeDirs && !outFile.getParentFile().exists()) {
             throw new IOException("Failed to make directories");
+        }
+
+        if (outFile.exists()) { //Delete the file and recreate it if it exists
+            if (!outFile.delete()) {
+                LogHelper.warn(getClass(), "Failed to delete original raw LZ file: " + outFile.getAbsolutePath());
+                LogHelper.warn(getClass(), "Output raw LZ file may be corrupt");
+            }
         }
 
         cfgBytesToWrite =
@@ -261,7 +262,7 @@ public class LZExporter {
         //Write complete (uncompressed) file
         RandomAccessFile rafReadCfg = new RandomAccessFile(tempCfgFile, "r");
         RandomAccessFile rafReadCol = new RandomAccessFile(tempColFile, "r");
-        RandomAccessFile rafOutRaw = new RandomAccessFile(outputRawFile, "rw");
+        RandomAccessFile rafOutRaw = new RandomAccessFile(outFile, "rw");
 
         int cfgSize = (int) rafReadCfg.length();
         int colSize = (int) rafReadCol.length();
@@ -549,6 +550,13 @@ public class LZExporter {
         rafReadCol.close();
         rafReadCfg.close();
         rafOutRaw.close();
+
+        if (!tempCfgFile.delete()) {
+            LogHelper.warn(getClass(), "Failed to delete temporary file: " + tempCfgFile.getAbsolutePath());
+        }
+        if (!tempColFile.delete()) {
+            LogHelper.warn(getClass(), "Failed to delete temporary file: " + tempColFile.getAbsolutePath());
+        }
 
         if (SMBWorkshopExporter.verboseLogging) {
             LogHelper.trace(LZExporter.class, "Done exporting output.lz.raw");
