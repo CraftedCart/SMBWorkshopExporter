@@ -1,6 +1,7 @@
 package craftedcart.smbworkshopexporter;
 
 import craftedcart.smbworkshopexporter.util.LZSSDictionary;
+import craftedcart.smbworkshopexporter.util.LogHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,11 +14,14 @@ import java.util.List;
  */
 public class LZCompressor {
 
+    public int progress = 0;
+    public int progressMax = 0;
+
     /**
      * Compresses an 8 bit string to LZSS format
      * @param data String to compress
      */
-    public static List<Byte> compress(Byte[] data) {
+    public List<Byte> compress(Byte[] data) {
 
         LZSSDictionary dict = new LZSSDictionary();
 
@@ -47,6 +51,7 @@ public class LZCompressor {
 
         int i = 0;
         int dataSize = data.length;
+        progressMax = dataSize + 8;
 
         while (i < dataSize) {
 
@@ -100,6 +105,7 @@ public class LZCompressor {
             output.add((byte) flags);
             output.addAll(accum);
 
+            progress = i;
         }
 
         //This is used in FF7, not SMB
@@ -113,17 +119,17 @@ public class LZCompressor {
         //<editor-fold desc="Super Monkey Ball specific stuff">
         //Add uncompressed size to the beginning (int, little endian)
         int uncompressedSize = data.length;
-        output.add(0, (byte) (uncompressedSize & 0xFF));
-        output.add(1, (byte) ((uncompressedSize >> 8) & 0xFF));
-        output.add(2, (byte) ((uncompressedSize >> 16) & 0xFF));
-        output.add(3, (byte) ((uncompressedSize >> 24) & 0xFF));
+        output.add(0, (byte) (uncompressedSize & 0xFF)); progress++;
+        output.add(1, (byte) ((uncompressedSize >> 8) & 0xFF)); progress++;
+        output.add(2, (byte) ((uncompressedSize >> 16) & 0xFF)); progress++;
+        output.add(3, (byte) ((uncompressedSize >> 24) & 0xFF)); progress++;
 
         //Add compressed size to the beginning (int, little endian - including these new 4 bytes)
         int compressedSize = output.size() + 4;
-        output.add(0, (byte) (compressedSize & 0xFF));
-        output.add(1, (byte) ((compressedSize >> 8) & 0xFF));
-        output.add(2, (byte) ((compressedSize >> 16) & 0xFF));
-        output.add(3, (byte) ((compressedSize >> 24) & 0xFF));
+        output.add(0, (byte) (compressedSize & 0xFF)); progress++;
+        output.add(1, (byte) ((compressedSize >> 8) & 0xFF)); progress++;
+        output.add(2, (byte) ((compressedSize >> 16) & 0xFF)); progress++;
+        output.add(3, (byte) ((compressedSize >> 24) & 0xFF)); progress++;
         //</editor-fold>
 
         return output;

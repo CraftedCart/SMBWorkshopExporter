@@ -158,7 +158,7 @@ public class SMBWorkshopExporter {
                 }
 
                 final Byte[] byteArray = contents.toArray(new Byte[contents.size()]);
-                List<Byte> bl = LZCompressor.compress(byteArray);
+                List<Byte> bl = (new LZCompressor()).compress(byteArray);
 
                 for (Byte c : bl) {
                     comp.write(c);
