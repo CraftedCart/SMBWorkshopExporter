@@ -1,5 +1,6 @@
 package craftedcart.smbworkshopexporter.util;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -42,13 +43,7 @@ public class ByteArrayWrapper {
 
     @Override
     public int hashCode() {
-        int code = 0;
-
-        for (Byte b : data) {
-            code += b;
-        }
-
-        return code;
+        return Arrays.hashCode(data);
     }
 
 }
