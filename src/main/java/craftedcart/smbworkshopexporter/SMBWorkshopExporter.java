@@ -126,7 +126,7 @@ public class SMBWorkshopExporter {
 
         LogHelper.info(SMBWorkshopExporter.class, "Writing raw LZ file...");
         try {
-            (new LZExporter()).writeRawLZ(modelData, configData, outputFile);
+            (new SMB1LZExporter()).writeRawLZ(modelData, configData, outputFile);
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "Raw LZ file not found!");
