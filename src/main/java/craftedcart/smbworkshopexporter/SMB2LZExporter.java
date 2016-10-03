@@ -14,17 +14,7 @@ import java.util.Map;
  * @author CraftedCart
  *         Created on 01/10/2016 (DD/MM/YYYY)
  */
-public class SMB2LZExporter {
-    
-    public EnumLZExportTask currentTask = EnumLZExportTask.EXPORT_CONFIG;
-    public int cfgBytesToWrite = 0;
-    public int cfgBytesWritten = 0;
-    public int colBytesToWrite = 0;
-    public int colBytesWritten = 0;
-    public int lzBytesToWrite = 0;
-    public int lzBytesWritten = 0;
-
-    private TaskDoneAction taskDoneAction;
+public class SMB2LZExporter extends AbstractLzExporter {
 
     public void writeRawLZ(ModelData modelData, ConfigData configData, File outFile) throws IOException {
 
@@ -686,18 +676,6 @@ public class SMB2LZExporter {
     private void lzWriteShort(RandomAccessFile raf, int toWrite) throws IOException {
         raf.writeShort(toWrite);
         lzBytesWritten += 2;
-    }
-
-    public void setCurrentTask(EnumLZExportTask currentTask) {
-        if (taskDoneAction != null) {
-            taskDoneAction.execute(this.currentTask);
-        }
-
-        this.currentTask = currentTask;
-    }
-
-    public void setTaskDoneAction(TaskDoneAction taskDoneAction) {
-        this.taskDoneAction = taskDoneAction;
     }
 
 }
