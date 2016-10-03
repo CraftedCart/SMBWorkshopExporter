@@ -102,9 +102,9 @@ public class SMB2LZExporter {
             //Write type
             cfgWriteShort(rafConfig, type);
         }
-        sectOffsets[1] = (int) (rafConfig.getFilePointer() + 0x8B4);
 
         //Bumpers
+        sectOffsets[1] = (int) (rafConfig.getFilePointer() + 0x8B4);
         for (Map.Entry<String, Bumper> entry : configData.bumperList.entrySet()) {
             Bumper bumper = entry.getValue();
 
@@ -126,17 +126,38 @@ public class SMB2LZExporter {
             cfgWriteFloat(rafConfig, bumper.sclY);
             cfgWriteFloat(rafConfig, bumper.sclZ);
         }
-        sectOffsets[3] = (int) (rafConfig.getFilePointer() + 0x8B4);
+
+        //Jamabars
+        sectOffsets[2] = (int) (rafConfig.getFilePointer() + 0x8B4);
+        for (Map.Entry<String, Jamabar> entry : configData.jamabarList.entrySet()) {
+            Jamabar jamabar = entry.getValue();
+            //Write position
+            cfgWriteFloat(rafConfig, jamabar.posX);
+            cfgWriteFloat(rafConfig, jamabar.posY);
+            cfgWriteFloat(rafConfig, jamabar.posZ);
+
+            //Write rotation
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotX)));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotY)));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotZ)));
+
+            cfgWrite(rafConfig, 0);
+            cfgWrite(rafConfig, 0);
+
+            //Write scale
+            cfgWriteFloat(rafConfig, jamabar.sclX);
+            cfgWriteFloat(rafConfig, jamabar.sclY);
+            cfgWriteFloat(rafConfig, jamabar.sclZ);
+        }
 
         //Bananas
+        sectOffsets[3] = (int) (rafConfig.getFilePointer() + 0x8B4);
         for (Map.Entry<String, Banana> entry : configData.bananaList.entrySet()) {
             Banana banana = entry.getValue();
-
             //Write position
             cfgWriteFloat(rafConfig, banana.posX);
             cfgWriteFloat(rafConfig, banana.posY);
             cfgWriteFloat(rafConfig, banana.posZ);
-
             //Write type
             cfgWriteInt(rafConfig, banana.type);
         }
@@ -290,8 +311,15 @@ public class SMB2LZExporter {
             }
         }
 
-        for (int i = 0; i < 8; i++) { //Write 8x 0
-            lzWrite(rafOutRaw, 0);
+        //Write jamabars
+        int jamabarCount = configData.jamabarList.size();
+        if (jamabarCount > 0) {
+            lzWriteInt(rafOutRaw, jamabarCount);
+            lzWriteInt(rafOutRaw, sectOffsets[2]);
+        } else {
+            for (int i = 0; i < 8; i++) { //Write 8x 0
+                lzWrite(rafOutRaw, 0);
+            }
         }
 
         //Write bananas
@@ -395,14 +423,20 @@ public class SMB2LZExporter {
             }
         }
 
-        for (int i = 0; i < 8; i++) { //Write 8x 0
-            lzWrite(rafOutRaw, 0);
-        }
-
         //Write bumpers (again)
         if (bumperCount > 0) {
             lzWriteInt(rafOutRaw, bumperCount);
             lzWriteInt(rafOutRaw, sectOffsets[1]);
+        } else {
+            for (int i = 0; i < 8; i++) { //Write 8x 0
+                lzWrite(rafOutRaw, 0);
+            }
+        }
+
+        //Write jamabars (again)
+        if (jamabarCount > 0) {
+            lzWriteInt(rafOutRaw, jamabarCount);
+            lzWriteInt(rafOutRaw, sectOffsets[2]);
         } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
                 lzWrite(rafOutRaw, 0);

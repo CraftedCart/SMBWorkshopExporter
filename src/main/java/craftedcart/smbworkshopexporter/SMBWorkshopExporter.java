@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author CraftedCart
@@ -31,6 +32,9 @@ public class SMBWorkshopExporter {
         inConfig.setRequired(true);
         options.addOption(inConfig);
 
+        Option gameVer = new Option("g", "gamever", true, "The game version \"1\" or \"2\"");
+        options.addOption(gameVer);
+
         Option lzOut = new Option("o", "output", true, "The path to the raw LZ output file");
         options.addOption(lzOut);
 
@@ -51,7 +55,7 @@ public class SMBWorkshopExporter {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -s path/to/output/file", options);
+            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -g [1 / 2] -s path/to/output/file", options);
 
             System.exit(1);
             return;
@@ -59,18 +63,33 @@ public class SMBWorkshopExporter {
 
         if (!cmd.hasOption("o") && !cmd.hasOption("s")) {
             System.out.println("Missing output path! Specify with --output (-o) or --compressedoutput (-s) (Or specify both)");
-            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -s path/to/output/file", options);
+            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -g [1 / 2] -s path/to/output/file", options);
 
             System.exit(1);
             return;
         }
 
         if (cmd.hasOption("h")) { //Show help
-            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -s path/to/output/file", options);
+            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -g [1 / 2] -s path/to/output/file", options);
             System.exit(0);
         }
 
         verboseLogging = cmd.hasOption("verbose");
+
+        String gameVersionString = cmd.getOptionValue("gamever");
+        int gameVersion;
+        if (Objects.equals(gameVersionString, "1")) {
+            gameVersion = 1;
+        } else if (Objects.equals(gameVersionString, "2")) {
+            gameVersion = 2;
+        } else {
+            //Error - invalid version specified
+            System.out.println("Invalid game version! Specify \"1\" or \"2\"");
+            formatter.printHelp("java -jar smbworkshopexporter.x.y.jar -m path/to/obj -c path/to/config -g [1 / 2] -s path/to/output/file", options);
+
+            System.exit(1);
+            return;
+        }
 
         String modelFilePath = cmd.getOptionValue("model");
         String configFilePath = cmd.getOptionValue("config");
@@ -126,7 +145,11 @@ public class SMBWorkshopExporter {
 
         LogHelper.info(SMBWorkshopExporter.class, "Writing raw LZ file...");
         try {
-            (new SMB1LZExporter()).writeRawLZ(modelData, configData, outputFile);
+            if (gameVersion == 1) {
+                (new SMB1LZExporter()).writeRawLZ(modelData, configData, outputFile);
+            } else {
+                (new SMB2LZExporter()).writeRawLZ(modelData, configData, outputFile);
+            }
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "Raw LZ file not found!");
