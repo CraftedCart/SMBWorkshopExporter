@@ -33,10 +33,12 @@ public class SMB2LZExporter extends AbstractLzExporter {
             }
         }
 
-        //TODO Fix this
+        int noBgModels = 0;
+
         cfgBytesToWrite =
                         20 * configData.goalList.size() +
                         32 * configData.bumperList.size() +
+                        32 * configData.jamabarList.size() +
                         16 * configData.bananaList.size();
 
         for (int i = 0; i < modelData.cmnObjs.size(); i++) {
@@ -47,7 +49,13 @@ public class SMB2LZExporter extends AbstractLzExporter {
             }
         }
 
-        lzBytesToWrite = 2000 + cfgBytesToWrite + colBytesToWrite + (512 * Math.floorDiv(colBytesToWrite, 64)) + (modelData.cmnObjNames.size() * 12);
+        lzBytesToWrite = 4946 + cfgBytesToWrite + colBytesToWrite +
+                (512 * Math.floorDiv(colBytesToWrite, 64)) +
+                ((modelData.cmnObjNames.size() - noBgModels) * 12) +
+                ((modelData.cmnObjNames.size() - noBgModels) * 4) +
+                ((modelData.cmnObjNames.size() - noBgModels) * 7) +
+                ((modelData.cmnObjNames.size() - noBgModels) * 5) +
+                ((modelData.cmnObjNames.size() - noBgModels) * 4);
         for (String name : modelData.cmnObjNames) {
             lzBytesToWrite += name.length();
         }
@@ -59,7 +67,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
         }
         
         //Write config
-        
         RandomAccessFile rafConfig = new RandomAccessFile(tempCfgFile, "rw");
 
         int[] sectOffsets = new int[4];
@@ -161,8 +168,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
         setCurrentTask(EnumLZExportTask.EXPORT_COLLISION);
 
         //Write collision triangles
-        int noBgModels = 0;
-
         RandomAccessFile rafCol = new RandomAccessFile(tempColFile, "rw");
 
         for (int i = 0; i < modelData.cmnObjs.size(); i++) {

@@ -59,7 +59,6 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
         
         //Write config
-        
         RandomAccessFile rafConfig = new RandomAccessFile(tempCfgFile, "rw");
 
         int[] sectOffsets = new int[4];

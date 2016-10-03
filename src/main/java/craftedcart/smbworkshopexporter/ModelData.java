@@ -72,17 +72,29 @@ public class ModelData {
 
                 String[] splitPos1 = splitLine[1].split("/");
                 tri.va = Integer.valueOf(splitPos1[0]);
-                tri.vta = Integer.valueOf(splitPos1[1]);
+                if (Objects.equals(splitPos1[1], "")) {
+                    tri.vta = 0;
+                } else {
+                    tri.vta = Integer.valueOf(splitPos1[1]);
+                }
                 tri.vna = Integer.valueOf(splitPos1[2]);
 
                 String[] splitPos2 = splitLine[2].split("/");
                 tri.vb = Integer.valueOf(splitPos2[0]);
-                tri.vtb = Integer.valueOf(splitPos2[1]);
+                if (Objects.equals(splitPos2[1], "")) {
+                    tri.vtb = 0;
+                } else {
+                    tri.vtb = Integer.valueOf(splitPos2[1]);
+                }
                 tri.vnb = Integer.valueOf(splitPos2[2]);
 
                 String[] splitPos3 = splitLine[3].split("/");
                 tri.vc = Integer.valueOf(splitPos3[0]);
-                tri.vtc = Integer.valueOf(splitPos3[1]);
+                if (Objects.equals(splitPos3[1], "")) {
+                    tri.vtc = 0;
+                } else {
+                    tri.vtc = Integer.valueOf(splitPos3[1]);
+                }
                 tri.vnc = Integer.valueOf(splitPos3[2]);
 
                 if (cmnObjs.size() > 0) {
