@@ -501,8 +501,19 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         for (int i = 0; i < tallyObjNames; i++) {
             char[] chars = modelData.cmnObjNames.get(i).toCharArray();
+            int j = 0;
             for (char c : chars) {
                 lzWrite(rafOutRaw, c);
+                j++;
+
+                if (j == 80) {
+                    break;
+                }
+            }
+
+            while (j < 80) {
+                lzWrite(rafOutRaw, 0);
+                j++;
             }
         }
 

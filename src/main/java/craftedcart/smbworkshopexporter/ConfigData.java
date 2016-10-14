@@ -15,11 +15,11 @@ import java.util.regex.Pattern;
  */
 public class ConfigData {
 
-    Map<String, Start> startList = new HashMap<>();
-    Map<String, Goal> goalList = new HashMap<>();
-    Map<String, Bumper> bumperList = new HashMap<>();
-    Map<String, Jamabar> jamabarList = new HashMap<>();
-    Map<String, Banana> bananaList = new HashMap<>();
+    public Map<String, Start> startList = new HashMap<>();
+    public Map<String, Goal> goalList = new HashMap<>();
+    public Map<String, Bumper> bumperList = new HashMap<>();
+    public Map<String, Jamabar> jamabarList = new HashMap<>();
+    public Map<String, Banana> bananaList = new HashMap<>();
 
     float falloutPlane = 0.0f;
 
