@@ -73,8 +73,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
         sectOffsets[0] = 0x8B4;
 
         //Write goals
-        for (Map.Entry<String, Goal> entry : configData.goalList.entrySet()) {
-            Goal goal = entry.getValue();
+        for (Map.Entry<String, ConfigData.Goal> entry : configData.goalList.entrySet()) {
+            ConfigData.Goal goal = entry.getValue();
 
             int type = 'B' << 8;
 
@@ -102,8 +102,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         //Bumpers
         sectOffsets[1] = (int) (rafConfig.getFilePointer() + 0x8B4);
-        for (Map.Entry<String, Bumper> entry : configData.bumperList.entrySet()) {
-            Bumper bumper = entry.getValue();
+        for (Map.Entry<String, ConfigData.Bumper> entry : configData.bumperList.entrySet()) {
+            ConfigData.Bumper bumper = entry.getValue();
 
             //Write position
             cfgWriteFloat(rafConfig, bumper.posX);
@@ -126,8 +126,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         //Jamabars
         sectOffsets[2] = (int) (rafConfig.getFilePointer() + 0x8B4);
-        for (Map.Entry<String, Jamabar> entry : configData.jamabarList.entrySet()) {
-            Jamabar jamabar = entry.getValue();
+        for (Map.Entry<String, ConfigData.Jamabar> entry : configData.jamabarList.entrySet()) {
+            ConfigData.Jamabar jamabar = entry.getValue();
             //Write position
             cfgWriteFloat(rafConfig, jamabar.posX);
             cfgWriteFloat(rafConfig, jamabar.posY);
@@ -149,8 +149,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         //Bananas
         sectOffsets[3] = (int) (rafConfig.getFilePointer() + 0x8B4);
-        for (Map.Entry<String, Banana> entry : configData.bananaList.entrySet()) {
-            Banana banana = entry.getValue();
+        for (Map.Entry<String, ConfigData.Banana> entry : configData.bananaList.entrySet()) {
+            ConfigData.Banana banana = entry.getValue();
             //Write position
             cfgWriteFloat(rafConfig, banana.posX);
             cfgWriteFloat(rafConfig, banana.posY);
@@ -355,7 +355,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         }
 
         //Write start pos
-        Start start = configData.startList.entrySet().iterator().next().getValue();
+        ConfigData.Start start = configData.startList.entrySet().iterator().next().getValue();
         lzWriteFloat(rafOutRaw, start.posX);
         lzWriteFloat(rafOutRaw, start.posY);
         lzWriteFloat(rafOutRaw, start.posZ);

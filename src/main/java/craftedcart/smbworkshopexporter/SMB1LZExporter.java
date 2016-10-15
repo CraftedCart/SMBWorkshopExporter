@@ -65,8 +65,8 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[0] = 256;
 
         //Write goals
-        for (Map.Entry<String, Goal> entry : configData.goalList.entrySet()) {
-            Goal goal = entry.getValue();
+        for (Map.Entry<String, ConfigData.Goal> entry : configData.goalList.entrySet()) {
+            ConfigData.Goal goal = entry.getValue();
 
             int type = 'B' << 8;
 
@@ -94,8 +94,8 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[1] = (int) (rafConfig.getFilePointer() + 256);
 
         //Bumpers
-        for (Map.Entry<String, Bumper> entry : configData.bumperList.entrySet()) {
-            Bumper bumper = entry.getValue();
+        for (Map.Entry<String, ConfigData.Bumper> entry : configData.bumperList.entrySet()) {
+            ConfigData.Bumper bumper = entry.getValue();
 
             //Write position
             cfgWriteFloat(rafConfig, bumper.posX);
@@ -118,8 +118,8 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[2] = (int) (rafConfig.getFilePointer() + 256);
 
         //Jamabars
-        for (Map.Entry<String, Jamabar> entry : configData.jamabarList.entrySet()) {
-            Jamabar jamabar = entry.getValue();
+        for (Map.Entry<String, ConfigData.Jamabar> entry : configData.jamabarList.entrySet()) {
+            ConfigData.Jamabar jamabar = entry.getValue();
 
             //Write position
             cfgWriteFloat(rafConfig, jamabar.posX);
@@ -142,8 +142,8 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[3] = (int) (rafConfig.getFilePointer() + 256);
 
         //Bananas
-        for (Map.Entry<String, Banana> entry : configData.bananaList.entrySet()) {
-            Banana banana = entry.getValue();
+        for (Map.Entry<String, ConfigData.Banana> entry : configData.bananaList.entrySet()) {
+            ConfigData.Banana banana = entry.getValue();
 
             //Write position
             cfgWriteFloat(rafConfig, banana.posX);
@@ -341,7 +341,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
             lzWrite(rafOutRaw, 0);
         }
         //Write start pos
-        Start start = configData.startList.entrySet().iterator().next().getValue();
+        ConfigData.Start start = configData.startList.entrySet().iterator().next().getValue();
         lzWriteFloat(rafOutRaw, start.posX);
         lzWriteFloat(rafOutRaw, start.posY);
         lzWriteFloat(rafOutRaw, start.posZ);

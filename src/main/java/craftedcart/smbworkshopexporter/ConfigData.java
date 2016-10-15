@@ -21,7 +21,7 @@ public class ConfigData {
     public Map<String, Jamabar> jamabarList = new HashMap<>();
     public Map<String, Banana> bananaList = new HashMap<>();
 
-    float falloutPlane = 0.0f;
+    public float falloutPlane = 0.0f;
 
     public void parseConfig(File configFile) throws IOException, IllegalStateException, NumberFormatException {
         
@@ -305,62 +305,63 @@ public class ConfigData {
         fis.close();
 
     }
-}
 
-class Start {
-    float posX;
-    float posY;
-    float posZ;
+    public class Start {
+        public float posX;
+        public float posY;
+        public float posZ;
 
-    float rotX;
-    float rotY;
-    float rotZ;
-}
+        public float rotX;
+        public float rotY;
+        public float rotZ;
+    }
 
-class Goal {
-    float posX;
-    float posY;
-    float posZ;
+    public class Goal {
+        public float posX;
+        public float posY;
+        public float posZ;
 
-    float rotX;
-    float rotY;
-    float rotZ;
+        public float rotX;
+        public float rotY;
+        public float rotZ;
 
-    int type = 0;
-}
+        public int type = 0;
+    }
 
-class Bumper {
-    float posX;
-    float posY;
-    float posZ;
+    public class Bumper {
+        public float posX;
+        public float posY;
+        public float posZ;
 
-    float rotX;
-    float rotY;
-    float rotZ;
+        public float rotX;
+        public float rotY;
+        public float rotZ;
 
-    float sclX;
-    float sclY;
-    float sclZ;
-}
+        public float sclX;
+        public float sclY;
+        public float sclZ;
+    }
 
-class Jamabar {
-    float posX;
-    float posY;
-    float posZ;
+    public class Jamabar {
+        public float posX;
+        public float posY;
+        public float posZ;
 
-    float rotX;
-    float rotY;
-    float rotZ;
+        public float rotX;
+        public float rotY;
+        public float rotZ;
 
-    float sclX;
-    float sclY;
-    float sclZ;
-}
+        public float sclX;
+        public float sclY;
+        public float sclZ;
+    }
 
-class Banana {
-    float posX;
-    float posY;
-    float posZ;
+    public class Banana {
+        public float posX;
+        public float posY;
+        public float posZ;
 
-    int type;
+        public int type;
+    }
+
 }
