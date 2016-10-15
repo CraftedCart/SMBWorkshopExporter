@@ -49,7 +49,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
 
         lzBytesToWrite = 2000 + cfgBytesToWrite + colBytesToWrite + (512 * Math.floorDiv(colBytesToWrite, 64)) + (modelData.cmnObjNames.size() * 12);
         for (String name : modelData.cmnObjNames) {
-            lzBytesToWrite += name.length();
+            lzBytesToWrite += 80;
         }
         if (lzBytesToWrite % 8 == 4) {
             lzBytesToWrite += 4;
@@ -331,7 +331,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
 
         int tallyObjNames = modelData.cmnObjNames.size();
         lzWriteInt(rafOutRaw, tallyObjNames + 1);
-        lzWriteInt(rafOutRaw, realColSize + cfgSize + 256); //Diff
+        lzWriteInt(rafOutRaw, realColSize + cfgSize + 256);
 
         for (int i = 0; i < 31; i++) { //Write 31x 0
             lzWrite(rafOutRaw, 0);
@@ -467,7 +467,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
 
         for (int i = 0; i < 256; i++) {
             for (int j = 0; j < (colSize / 64); j++) {
-                lzWriteShort(rafOutRaw, j & 0xFF);
+                lzWriteShort(rafOutRaw, j);
             }
             lzWrite(rafOutRaw, 0xFF);
             lzWrite(rafOutRaw, 0xFF);

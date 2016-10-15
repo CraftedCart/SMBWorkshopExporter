@@ -57,7 +57,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
                 ((modelData.cmnObjNames.size() - noBgModels) * 5) +
                 ((modelData.cmnObjNames.size() - noBgModels) * 4);
         for (String name : modelData.cmnObjNames) {
-            lzBytesToWrite += name.length();
+            lzBytesToWrite += 80;
         }
         if (lzBytesToWrite % 8 == 4) {
             lzBytesToWrite += 4;
