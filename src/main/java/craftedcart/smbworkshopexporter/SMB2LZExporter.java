@@ -8,7 +8,10 @@ import craftedcart.smbworkshopexporter.util.Vec3f;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author CraftedCart
@@ -33,7 +36,21 @@ public class SMB2LZExporter extends AbstractLzExporter {
             }
         }
 
-        int noBgModels = 0;
+        List<String> internalBackgrounds = new ArrayList<>();
+        List<String> externalBackgrounds = new ArrayList<>();
+
+        for (String bgName : configData.backgroundList) {
+            if (modelData.cmnObjNames.contains(bgName)) {
+                //It's an internal background
+                internalBackgrounds.add(bgName);
+            } else {
+                //It's an external background
+                externalBackgrounds.add(bgName);
+            }
+        }
+
+        int bgModelCountInternal = internalBackgrounds.size();
+        int bgModelCountExternal = externalBackgrounds.size();
 
         cfgBytesToWrite =
                         20 * configData.goalList.size() +
@@ -44,6 +61,10 @@ public class SMB2LZExporter extends AbstractLzExporter {
         for (int i = 0; i < modelData.cmnObjs.size(); i++) {
             Obj obj = modelData.cmnObjs.get(i);
 
+            if (configData.backgroundList.contains(modelData.cmnObjNames.get(i))) {
+                continue;
+            }
+
             for (int j = 0; j < obj.tris.size(); j++) {
                 colBytesToWrite += 64;
             }
@@ -51,11 +72,12 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         lzBytesToWrite = 4946 + cfgBytesToWrite + colBytesToWrite +
                 (512 * Math.floorDiv(colBytesToWrite, 64)) +
-                ((modelData.cmnObjNames.size() - noBgModels) * 12) +
-                ((modelData.cmnObjNames.size() - noBgModels) * 4) +
-                ((modelData.cmnObjNames.size() - noBgModels) * 7) +
-                ((modelData.cmnObjNames.size() - noBgModels) * 5) +
-                ((modelData.cmnObjNames.size() - noBgModels) * 4);
+                ((modelData.cmnObjNames.size() - bgModelCountInternal) * 12) +
+                ((modelData.cmnObjNames.size() - bgModelCountInternal) * 4) +
+                ((modelData.cmnObjNames.size() - bgModelCountInternal) * 7) +
+                ((modelData.cmnObjNames.size() - bgModelCountInternal) * 5) +
+                ((modelData.cmnObjNames.size() - bgModelCountInternal) * 4) +
+                (bgModelCountInternal * 56);
         for (String name : modelData.cmnObjNames) {
             lzBytesToWrite += 80;
         }
@@ -76,7 +98,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         for (Map.Entry<String, ConfigData.Goal> entry : configData.goalList.entrySet()) {
             ConfigData.Goal goal = entry.getValue();
 
-            int type = 'B' << 8;
+            int type = 1;
 
             if (goal.type == 0) {
                 type = 1;
@@ -171,6 +193,12 @@ public class SMB2LZExporter extends AbstractLzExporter {
         RandomAccessFile rafCol = new RandomAccessFile(tempColFile, "rw");
 
         for (int i = 0; i < modelData.cmnObjs.size(); i++) {
+
+            //Exclude background models from having collision
+            if (configData.backgroundList.contains(modelData.cmnObjNames.get(i))) {
+                continue;
+            }
+
             Obj obj = modelData.cmnObjs.get(i);
 
             for (int j = 0; j < obj.tris.size(); j++) {
@@ -332,10 +360,10 @@ public class SMB2LZExporter extends AbstractLzExporter {
             lzWrite(rafOutRaw, 0);
         }
 
-        lzWriteInt(rafOutRaw, noBgModels);
+        lzWriteInt(rafOutRaw, bgModelCountInternal);
 
         int tallyObjNames = modelData.cmnObjNames.size();
-        lzWriteInt(rafOutRaw, ((tallyObjNames - noBgModels) * 112) + realColSize + cfgSize + 0x8B4);
+        lzWriteInt(rafOutRaw, ((tallyObjNames - bgModelCountInternal) * 112) + realColSize + cfgSize + 0x8B4);
 
         for (int i = 0; i < 15; i++) { //Write 15x 0
             lzWrite(rafOutRaw, 0);
@@ -345,10 +373,10 @@ public class SMB2LZExporter extends AbstractLzExporter {
             lzWrite(rafOutRaw, 0);
         }
 
-        lzWriteInt(rafOutRaw, tallyObjNames - noBgModels);
-        lzWriteInt(rafOutRaw, ((tallyObjNames - noBgModels) * 16) + realColSize + cfgSize + 0x8B4);
-        lzWriteInt(rafOutRaw, tallyObjNames - noBgModels);
-        lzWriteInt(rafOutRaw, ((tallyObjNames - noBgModels) * 28) + realColSize + cfgSize + 0x8B4);
+        lzWriteInt(rafOutRaw, tallyObjNames - bgModelCountInternal);
+        lzWriteInt(rafOutRaw, ((tallyObjNames - bgModelCountInternal) * 16) + realColSize + cfgSize + 0x8B4);
+        lzWriteInt(rafOutRaw, tallyObjNames - bgModelCountInternal);
+        lzWriteInt(rafOutRaw, ((tallyObjNames - bgModelCountInternal) * 28) + realColSize + cfgSize + 0x8B4);
 
         for (int i = 0; i < 2048; i++) { //Write 2048x 0
             lzWrite(rafOutRaw, 0);
@@ -452,8 +480,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
             lzWrite(rafOutRaw, 0);
         }
 
-        lzWriteInt(rafOutRaw, tallyObjNames - noBgModels);
-        lzWriteInt(rafOutRaw, ((tallyObjNames - noBgModels) * 28) + realColSize + cfgSize + 0x8B4);
+        lzWriteInt(rafOutRaw, tallyObjNames - bgModelCountInternal);
+        lzWriteInt(rafOutRaw, ((tallyObjNames - bgModelCountInternal) * 28) + realColSize + cfgSize + 0x8B4);
 
         for (int i = 0; i < 1024; i++) { //Write 1024x 0
             lzWrite(rafOutRaw, 0);
@@ -480,14 +508,14 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         whereAreWe = (int) rafOutRaw.getFilePointer();
 
-        for (int i = 0; i < tallyObjNames - noBgModels; i++) {
+        for (int i = 0; i < tallyObjNames - bgModelCountInternal; i++) {
             for (int j = 0; j < 12; j++) { //Write 12x 0
                 lzWrite(rafOutRaw, 0);
             }
-            lzWriteInt(rafOutRaw, whereAreWe + ((tallyObjNames - noBgModels) * 32) + (80 * i));
+            lzWriteInt(rafOutRaw, whereAreWe + ((tallyObjNames - bgModelCountInternal) * 32) + (80 * i));
         }
 
-        for (int i = 0; i < tallyObjNames - noBgModels; i++) {
+        for (int i = 0; i < tallyObjNames - bgModelCountInternal; i++) {
             for (int j = 0; j < 7; j++) { //Write 7x 0
                 lzWrite(rafOutRaw, 0);
             }
@@ -495,13 +523,19 @@ public class SMB2LZExporter extends AbstractLzExporter {
             lzWriteInt(rafOutRaw, whereAreWe + 8 + (16 * i));
         }
 
-        for (int i = 0; i < tallyObjNames - noBgModels; i++) {
-            lzWriteInt(rafOutRaw, whereAreWe + ((tallyObjNames - noBgModels) * 16) + (12 * i));
+        for (int i = 0; i < tallyObjNames - bgModelCountInternal; i++) {
+            lzWriteInt(rafOutRaw, whereAreWe + ((tallyObjNames - bgModelCountInternal) * 16) + (12 * i));
         }
 
         for (int i = 0; i < tallyObjNames; i++) {
             char[] chars = modelData.cmnObjNames.get(i).toCharArray();
             int j = 0;
+
+            //Exclude background models
+            if (configData.backgroundList.contains(modelData.cmnObjNames.get(i))) {
+                continue;
+            }
+
             for (char c : chars) {
                 lzWrite(rafOutRaw, c);
                 j++;
@@ -517,43 +551,61 @@ public class SMB2LZExporter extends AbstractLzExporter {
             }
         }
 
-//        whereAreWe = (int) rafOutRaw.getFilePointer();
-//
-//        for (int i = 0; i < noBgModels; i++) {
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0x1F);
-//            lzWrite(rafOutRaw, ((whereAreWe + (noBgModels * 0x38) + (i * 80)) & 0xFF000000) >> 24);
-//            lzWrite(rafOutRaw, ((whereAreWe + (noBgModels * 0x38) + (i * 80)) & 0xFF0000) >> 16);
-//            lzWrite(rafOutRaw, ((whereAreWe + (noBgModels * 0x38) + (i * 80)) & 0xFF00) >> 8);
-//            lzWrite(rafOutRaw, (whereAreWe + (noBgModels * 0x38) + (i * 80)) & 0xFF);
-//            for (int j = 0; j < 24; j++) { //Write 24x 0
-//                lzWrite(rafOutRaw, 0);
-//            }
-//            lzWrite(rafOutRaw, 0x3F);
-//            lzWrite(rafOutRaw, 0x80);
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0x3F);
-//            lzWrite(rafOutRaw, 0x80);
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0x3F);
-//            lzWrite(rafOutRaw, 0x80);
-//            lzWrite(rafOutRaw, 0);
-//            lzWrite(rafOutRaw, 0);
-//            for (int j = 0; j < 12; j++) { //Write 12x 0
-//                lzWrite(rafOutRaw, 0);
-//            }
-//        }
-//
-//        for (int i = 0; i < tallyObjNames; i++) {
-//            char[] chars = modelData.cmnObjNames.get(i).toCharArray();
-//            for (char c : chars) {
-//                lzWrite(rafOutRaw, c);
-//            }
-//        }
+        whereAreWe = (int) rafOutRaw.getFilePointer();
+
+        for (int i = 0; i < bgModelCountInternal; i++) {
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0x1F);
+            lzWrite(rafOutRaw, ((whereAreWe + (bgModelCountInternal * 0x38) + (i * 80)) & 0xFF000000) >> 24);
+            lzWrite(rafOutRaw, ((whereAreWe + (bgModelCountInternal * 0x38) + (i * 80)) & 0xFF0000) >> 16);
+            lzWrite(rafOutRaw, ((whereAreWe + (bgModelCountInternal * 0x38) + (i * 80)) & 0xFF00) >> 8);
+            lzWrite(rafOutRaw, (whereAreWe + (bgModelCountInternal * 0x38) + (i * 80)) & 0xFF);
+            for (int j = 0; j < 24; j++) { //Write 24x 0
+                lzWrite(rafOutRaw, 0);
+            }
+            lzWrite(rafOutRaw, 0x3F);
+            lzWrite(rafOutRaw, 0x80);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0x3F);
+            lzWrite(rafOutRaw, 0x80);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0x3F);
+            lzWrite(rafOutRaw, 0x80);
+            lzWrite(rafOutRaw, 0);
+            lzWrite(rafOutRaw, 0);
+            for (int j = 0; j < 12; j++) { //Write 12x 0
+                lzWrite(rafOutRaw, 0);
+            }
+        }
+
+        for (int i = 0; i < tallyObjNames; i++) {
+
+            //Exclude level models
+            if (!configData.backgroundList.contains(modelData.cmnObjNames.get(i))) {
+                continue;
+            }
+
+            char[] chars = modelData.cmnObjNames.get(i).toCharArray();
+
+            int j = 0;
+            for (char c : chars) {
+                lzWrite(rafOutRaw, c);
+                j++;
+
+                if (j == 80) {
+                    break;
+                }
+            }
+
+            while (j < 80) {
+                lzWrite(rafOutRaw, 0);
+                j++;
+            }
+        }
 
         if (rafOutRaw.getFilePointer() % 8 == 4) {
             lzWrite(rafOutRaw, 0);

@@ -112,6 +112,9 @@ public class ModelData {
 
                 cmnObjNames.add(splitLine[1]);
 
+                Obj obj = new Obj();
+                cmnObjs.add(obj);
+
 //                if (SMBWorkshopExporter.verboseLogging) {
 //                    LogHelper.info(ModelData.class, "Done processing line: " + line);
 //                }

@@ -3,9 +3,7 @@ package craftedcart.smbworkshopexporter;
 import craftedcart.smbworkshopexporter.util.LogHelper;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +18,7 @@ public class ConfigData {
     public Map<String, Bumper> bumperList = new HashMap<>();
     public Map<String, Jamabar> jamabarList = new HashMap<>();
     public Map<String, Banana> bananaList = new HashMap<>();
+    public List<String> backgroundList = new ArrayList<>();
 
     public float falloutPlane = 0.0f;
 
@@ -40,7 +39,7 @@ public class ConfigData {
             if (Objects.equals(splitLine[0], "start")) { //Start
                 Matcher m = p.matcher(line);
                 if (!m.matches()) {
-                    throw new IllegalStateException(String.format("Invald config pattern at line \"%s\"", line));
+                    throw new IllegalStateException(String.format("Invalid config pattern at line \"%s\"", line));
                 }
 
                 //Get start object
@@ -294,6 +293,14 @@ public class ConfigData {
                 } else {
                     LogHelper.warn(getClass(), String.format("Invalid attribute \"%s\" - In line \"%s\"", m.group(3), line));
                 }
+
+            } else if (Objects.equals(splitLine[0], "background")) { //Background
+                Matcher m = p.matcher(line);
+                if (!m.matches()) {
+                    throw new IllegalStateException(String.format("Invalid config pattern \"%s\"", line));
+                }
+
+                backgroundList.add(m.group(5));
 
             } else if (!Objects.equals(line, "")) { //If the line is not empty
                 LogHelper.warn(getClass(), String.format("Invalid attribute \"%s\" - In line \"%s\"", splitLine[0], line));
