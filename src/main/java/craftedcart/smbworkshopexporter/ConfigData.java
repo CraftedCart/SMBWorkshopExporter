@@ -1,6 +1,7 @@
 package craftedcart.smbworkshopexporter;
 
 import craftedcart.smbworkshopexporter.util.LogHelper;
+import craftedcart.smbworkshopexporter.util.Vec3f;
 
 import java.io.*;
 import java.util.*;
@@ -19,6 +20,8 @@ public class ConfigData {
     public Map<String, Jamabar> jamabarList = new HashMap<>();
     public Map<String, Banana> bananaList = new HashMap<>();
     public List<String> backgroundList = new ArrayList<>();
+
+    public Map<String /* Index, not object name */, ConfigAnimData> animDataMap = new HashMap<>();
 
     public float falloutPlane = 0.0f;
 
@@ -301,6 +304,39 @@ public class ConfigData {
                 }
 
                 backgroundList.add(m.group(5));
+
+            } else if (Objects.equals(splitLine[0], "animobj")) {
+                Matcher m = p.matcher(line);
+                if (!m.matches()) {
+                    throw new IllegalStateException(String.format("Invalid config pattern \"%s\"", line));
+                }
+
+                //Get ConfigAnimData object
+                ConfigAnimData ad;
+                if (animDataMap.containsKey(m.group(2))) {
+                    //ID already exists
+                    ad = animDataMap.get(m.group(2));
+                } else {
+                    ad = new ConfigAnimData();
+                    animDataMap.put(m.group(2), ad);
+                }
+
+                if (Objects.equals(m.group(3), "file")) {
+                    ad.parseAnimConfig(new File(configFile.getParentFile(), m.group(5)));
+                } else if (Objects.equals(m.group(3), "name")) {
+                    ad.setObjectName(m.group(5));
+                } else if (Objects.equals(m.group(3), "center")) { //Set rotation center
+                    if (Objects.equals(m.group(4), "x")) {
+                        Vec3f oldCenter = ad.getRotationCenter();
+                        ad.setRotationCenter(new Vec3f(Float.parseFloat(m.group(5)), oldCenter.y, oldCenter.z));
+                    } else if (Objects.equals(m.group(4), "y")) {
+                        Vec3f oldCenter = ad.getRotationCenter();
+                        ad.setRotationCenter(new Vec3f(oldCenter.x, Float.parseFloat(m.group(5)), oldCenter.z));
+                    } else if (Objects.equals(m.group(4), "z")) {
+                        Vec3f oldCenter = ad.getRotationCenter();
+                        ad.setRotationCenter(new Vec3f(oldCenter.x, oldCenter.y, Float.parseFloat(m.group(5))));
+                    }
+                }
 
             } else if (!Objects.equals(line, "")) { //If the line is not empty
                 LogHelper.warn(getClass(), String.format("Invalid attribute \"%s\" - In line \"%s\"", splitLine[0], line));
