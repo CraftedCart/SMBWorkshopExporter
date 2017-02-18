@@ -16,6 +16,8 @@ dependencies {
 
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.5' //Log4J 2 API
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.5' //Log4J 2 Core
+
+    compile 'com.intellij:annotations:12.0' //IntelliJ Annotations
 }
 
 jar {
