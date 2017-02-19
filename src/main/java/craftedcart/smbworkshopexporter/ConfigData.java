@@ -25,6 +25,9 @@ public class ConfigData {
 
     public float falloutPlane = 0.0f;
 
+    public float maxTime = 60.0f;
+    public float leadInTime = 6.0f;
+
     public void parseConfig(File configFile) throws IOException, IllegalStateException, NumberFormatException {
         
         FileInputStream fis = new FileInputStream(configFile);
@@ -305,6 +308,22 @@ public class ConfigData {
 
                 backgroundList.add(m.group(5));
 
+            } else if (Objects.equals(splitLine[0], "maxtime")) { //Max time
+                Matcher m = p.matcher(line);
+                if (!m.matches()) {
+                    throw new IllegalStateException(String.format("Invalid config pattern \"%s\"", line));
+                }
+
+                maxTime = Float.parseFloat(m.group(5));
+
+            } else if (Objects.equals(splitLine[0], "leadintime")) { //Lead in time
+                Matcher m = p.matcher(line);
+                if (!m.matches()) {
+                    throw new IllegalStateException(String.format("Invalid config pattern \"%s\"", line));
+                }
+
+                leadInTime = Float.parseFloat(m.group(5));
+
             } else if (Objects.equals(splitLine[0], "animobj")) {
                 Matcher m = p.matcher(line);
                 if (!m.matches()) {
@@ -322,7 +341,7 @@ public class ConfigData {
                 }
 
                 if (Objects.equals(m.group(3), "file")) {
-                    ad.parseAnimConfig(new File(configFile.getParentFile(), m.group(5)));
+                    ad.parseAnimConfig(new File(configFile.getParentFile(), m.group(5)), maxTime + leadInTime);
                 } else if (Objects.equals(m.group(3), "name")) {
                     ad.setObjectName(m.group(5));
                 } else if (Objects.equals(m.group(3), "center")) { //Set rotation center

@@ -121,7 +121,12 @@ public class ConfigAnimData {
         return rotZFrames;
     }
 
-    public void parseAnimConfig(File animFile) throws IOException {
+    /**
+     * @param animFile The animation config file
+     * @param maxAndLeadInTime Total time
+     * @throws IOException File IO error
+     */
+    public void parseAnimConfig(File animFile, float maxAndLeadInTime) throws IOException {
         LogHelper.info(getClass(), "Parsing anim config: " + animFile.getAbsolutePath());
 
         Map<String, AnimDataFrame> indexedAnimData = new HashMap<>();
@@ -177,7 +182,7 @@ public class ConfigAnimData {
                     }
 
                 } else if (Objects.equals(m.group(3), "time")) { //Time
-                    adf.time = Float.parseFloat(m.group(5)) / 100.0f;
+                    adf.time = Float.parseFloat(m.group(5)) / maxAndLeadInTime;
 
                 } else {
                     LogHelper.warn(getClass(), String.format("Invalid attribute \"%s\" - In line \"%s\"", m.group(3), line));
