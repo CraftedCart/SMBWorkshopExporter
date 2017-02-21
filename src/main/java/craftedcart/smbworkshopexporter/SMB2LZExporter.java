@@ -91,7 +91,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         //Write config
         RandomAccessFile rafConfig = new RandomAccessFile(tempCfgFile, "rw");
 
-        int[] sectOffsets = new int[5];
+        int[] sectOffsets = new int[4];
         sectOffsets[0] = 0x8B4;
 
         //Write goals
@@ -179,39 +179,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
             cfgWriteFloat(rafConfig, banana.posZ);
             //Write type
             cfgWriteInt(rafConfig, banana.type);
-        }
-
-        //Wormholes (Bumpers for now)
-        sectOffsets[4] = (int) (rafConfig.getFilePointer() + 0x8B4);
-        int wormholeI = 0;
-        for (Map.Entry<String, ConfigData.Bumper> entry : configData.bumperList.entrySet()) {
-            ConfigData.Bumper wormhole = entry.getValue();
-
-            cfgWrite(rafConfig, 0);
-            cfgWrite(rafConfig, 0);
-            cfgWrite(rafConfig, 0);
-            cfgWrite(rafConfig, 1);
-
-            //Write position
-            cfgWriteFloat(rafConfig, wormhole.posX);
-            cfgWriteFloat(rafConfig, wormhole.posY);
-            cfgWriteFloat(rafConfig, wormhole.posZ);
-
-            //Write rotation
-            cfgWriteShort(rafConfig, (cnvAngle(wormhole.rotX)));
-            cfgWriteShort(rafConfig, (cnvAngle(wormhole.rotY)));
-            cfgWriteShort(rafConfig, (cnvAngle(wormhole.rotZ)));
-
-            cfgWrite(rafConfig, 0);
-            cfgWrite(rafConfig, 0);
-
-            if (wormholeI % 2 != 0) { //Odd
-                cfgWriteInt(rafConfig, (int) rafConfig.getFilePointer() + 4  + 0x8B4);
-            } else {
-                cfgWriteInt(rafConfig, (int) rafConfig.getFilePointer() - 24 - 28 + 0x8B4);
-            }
-
-            wormholeI++;
         }
 
         rafConfig.close();
@@ -357,15 +324,15 @@ public class SMB2LZExporter extends AbstractLzExporter {
         }
 
         //Write bumpers
-//        int bumperCount = configData.bumperList.size();
-//        if (bumperCount > 0) {
-//            lzWriteInt(rafOutRaw, bumperCount);
-//            lzWriteInt(rafOutRaw, sectOffsets[1]);
-//        } else {
+        int bumperCount = configData.bumperList.size();
+        if (bumperCount > 0) {
+            lzWriteInt(rafOutRaw, bumperCount);
+            lzWriteInt(rafOutRaw, sectOffsets[1]);
+        } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
                 lzWrite(rafOutRaw, 0);
             }
-//        }
+        }
 
         //Write jamabars
         int jamabarCount = configData.jamabarList.size();
@@ -411,22 +378,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         lzWriteInt(rafOutRaw, tallyObjNames - bgModelCountInternal);
         lzWriteInt(rafOutRaw, ((tallyObjNames - bgModelCountInternal) * 28) + realColSize + cfgSize + 0x8B4);
 
-        for (int i = 0; i < 24; i++) { //Write 24x 0
-            lzWrite(rafOutRaw, 0);
-        }
-
-        //Wormholes (Bumpers for now)
-        int bumperCount = configData.bumperList.size();
-        if (bumperCount > 0) {
-            lzWriteInt(rafOutRaw, bumperCount);
-            lzWriteInt(rafOutRaw, sectOffsets[4]);
-        } else {
-            for (int i = 0; i < 8; i++) { //Write 8x 0
-                lzWrite(rafOutRaw, 0);
-            }
-        }
-
-        for (int i = 0; i < 2016; i++) { //Write 2016x 0
+        for (int i = 0; i < 2048; i++) { //Write 2048x 0
             lzWrite(rafOutRaw, 0);
         }
 
@@ -495,14 +447,14 @@ public class SMB2LZExporter extends AbstractLzExporter {
         }
 
         //Write bumpers (again)
-//        if (bumperCount > 0) {
-//            lzWriteInt(rafOutRaw, bumperCount);
-//            lzWriteInt(rafOutRaw, sectOffsets[1]);
-//        } else {
+        if (bumperCount > 0) {
+            lzWriteInt(rafOutRaw, bumperCount);
+            lzWriteInt(rafOutRaw, sectOffsets[1]);
+        } else {
             for (int i = 0; i < 8; i++) { //Write 8x 0
                 lzWrite(rafOutRaw, 0);
             }
-//        }
+        }
 
         //Write jamabars (again)
         if (jamabarCount > 0) {
@@ -531,21 +483,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         lzWriteInt(rafOutRaw, tallyObjNames - bgModelCountInternal);
         lzWriteInt(rafOutRaw, ((tallyObjNames - bgModelCountInternal) * 28) + realColSize + cfgSize + 0x8B4);
 
-        for (int i = 0; i < 40; i++) { //Write 44x 0
-            lzWrite(rafOutRaw, 0);
-        }
-
-        //Wormholes again (As bumpers)
-        if (bumperCount > 0) {
-            lzWriteInt(rafOutRaw, bumperCount);
-            lzWriteInt(rafOutRaw, sectOffsets[4]);
-        } else {
-            for (int i = 0; i < 8; i++) { //Write 8x 0
-                lzWrite(rafOutRaw, 0);
-            }
-        }
-
-        for (int i = 0; i < 976; i++) { //Write 972x 0
+        for (int i = 0; i < 1024; i++) { //Write 1024x 0
             lzWrite(rafOutRaw, 0);
         }
 
