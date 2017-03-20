@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -106,7 +107,7 @@ public class SMBWorkshopExporter {
         LogHelper.info(SMBWorkshopExporter.class, "Parsing OBJ File...");
         ModelData modelData = new ModelData();
         try {
-            modelData.parseObj(new File(modelFilePath));
+            modelData.parseObj(Collections.singleton(new File(modelFilePath)));
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "OBJ file not found!");
@@ -124,7 +125,7 @@ public class SMBWorkshopExporter {
         LogHelper.info(SMBWorkshopExporter.class, "Parsing Config File...");
         ConfigData configData = new ConfigData();
         try {
-            configData.parseConfig(new File(configFilePath));
+            SMBCnvConfigParser.parseConfig(configData, new File(configFilePath));
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "Config file not found!");

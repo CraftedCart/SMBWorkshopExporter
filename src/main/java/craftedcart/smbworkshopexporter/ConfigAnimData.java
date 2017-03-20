@@ -18,8 +18,6 @@ import java.util.regex.Pattern;
  */
 public class ConfigAnimData {
 
-    protected String objectName = "";
-
     protected Vec3f rotationCenter = new Vec3f();
 
     protected TreeMap<Float, Float> posXFrames = new TreeMap<>();
@@ -30,13 +28,7 @@ public class ConfigAnimData {
     protected TreeMap<Float, Float> rotYFrames = new TreeMap<>();
     protected TreeMap<Float, Float> rotZFrames = new TreeMap<>();
 
-    public void setObjectName(String objectName) {
-        this.objectName = objectName;
-    }
-
-    public String getObjectName() {
-        return objectName;
-    }
+    protected float loopTime = 1000.0f;
 
     public void setRotationCenter(Vec3f rotationCenter) {
         this.rotationCenter = rotationCenter;
@@ -119,6 +111,14 @@ public class ConfigAnimData {
 
     public TreeMap<Float, Float> getRotZFrames() {
         return rotZFrames;
+    }
+
+    public void setLoopTime(float loopTime) {
+        this.loopTime = loopTime;
+    }
+
+    public float getLoopTime() {
+        return loopTime;
     }
 
     /**
