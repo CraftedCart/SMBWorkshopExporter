@@ -3,7 +3,9 @@ package craftedcart.smbworkshopexporter;
 
 import craftedcart.smbworkshopexporter.util.LogHelper;
 import org.apache.commons.cli.*;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -125,7 +127,11 @@ public class SMBWorkshopExporter {
         LogHelper.info(SMBWorkshopExporter.class, "Parsing Config File...");
         ConfigData configData = new ConfigData();
         try {
-            SMBCnvConfigParser.parseConfig(configData, new File(configFilePath));
+            if (configFilePath.toUpperCase().endsWith(".XML")) {
+                XMLConfigParser.parseConfig(configData, new File(configFilePath));
+            } else {
+                SMBCnvConfigParser.parseConfig(configData, new File(configFilePath));
+            }
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "Config file not found!");
@@ -140,6 +146,10 @@ public class SMBWorkshopExporter {
             System.exit(0);
         } catch (IllegalStateException e) {
             LogHelper.fatal(SMBWorkshopExporter.class, "Config file: Invalid pattern!");
+            LogHelper.fatal(SMBWorkshopExporter.class, e);
+            System.exit(0);
+        } catch (SAXException | ParserConfigurationException e) {
+            LogHelper.fatal(SMBWorkshopExporter.class, "Cannot parse config file!");
             LogHelper.fatal(SMBWorkshopExporter.class, e);
             System.exit(0);
         }
