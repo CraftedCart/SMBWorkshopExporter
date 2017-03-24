@@ -462,12 +462,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private void writeStartData() {
         Start start = configData.startList.entrySet().iterator().next().getValue();
 
-        addFloat(start.posX); //Start X Pos - Offset: 0
-        addFloat(start.posY); //Start Y Pos - Offset: 4
-        addFloat(start.posZ); //Start Z Pos - Offset: 8
-        addShort(cnvAngle(start.rotX)); //Start X Rot - Offset: 12
-        addShort(cnvAngle(start.rotY)); //Start Y Rot - Offset: 14
-        addShort(cnvAngle(start.rotZ)); //Start Z Rot - Offset: 16
+        addVec3f(start.pos); //Start X / Y / Z Pos - Offset: 0
+        addVec3fAngle(start.rot); //Start X / Y / Z Rot - Offset: 12
         addNull(2); //Padding - Offset: 18
     }
 

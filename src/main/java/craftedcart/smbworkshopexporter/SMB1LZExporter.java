@@ -355,13 +355,13 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
         //Write start pos
         Start start = configData.startList.entrySet().iterator().next().getValue();
-        lzWriteFloat(rafOutRaw, start.posX);
-        lzWriteFloat(rafOutRaw, start.posY);
-        lzWriteFloat(rafOutRaw, start.posZ);
+        lzWriteFloat(rafOutRaw, start.pos.x);
+        lzWriteFloat(rafOutRaw, start.pos.y);
+        lzWriteFloat(rafOutRaw, start.pos.z);
 
-        lzWriteShort(rafOutRaw, (cnvAngle(start.rotX)));
-        lzWriteShort(rafOutRaw, (cnvAngle(start.rotY)));
-        lzWriteShort(rafOutRaw, (cnvAngle(start.rotZ)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rot.x)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rot.y)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rot.z)));
 
         lzWrite(rafOutRaw, 0);
         lzWrite(rafOutRaw, 0);

@@ -17,6 +17,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,8 +51,14 @@ public class XMLConfigParser {
             }
         }
 
-        //TODO: Start pos
         //TODO: Background models
+
+        NodeList startList = root.getElementsByTagName("start");
+        if (startList.getLength() > 0) {
+            Element startElement = (Element) startList.item(0);
+            String name = getDefNameOrUniqueName(startElement, "Start position", getAllNames(configData.itemGroups, configData.startList.keySet()));
+            configData.startList.put(name, getStart(startElement));
+        }
 
         NodeList falloutList = root.getElementsByTagName("falloutPlane");
         configData.falloutPlane = getFloatAttr((Element) falloutList.item(0), "y");
@@ -166,6 +173,15 @@ public class XMLConfigParser {
         return itemGroup;
     }
 
+    private static Start getStart(Element startElement) {
+        Start start = new Start();
+
+        start.pos = getPosition(startElement);
+        start.rot = getRotation(startElement);
+
+        return start;
+    }
+
     private static Goal getGoal(Element goalElement) {
         Goal goal = new Goal();
 
@@ -205,7 +221,7 @@ public class XMLConfigParser {
         return banana;
     }
 
-    private static Set<String> getAllNames(Set<ItemGroup> itemGroups, Set<String> startListNames) {
+    private static Set<String> getAllNames(Collection<ItemGroup> itemGroups, Collection<String> startListNames) {
         Set<String> names = new HashSet<>();
 
         names.addAll(startListNames);
@@ -232,7 +248,7 @@ public class XMLConfigParser {
      * @return The defined name, or a unique name if a defined name doesn't exist / is already taken
      */
     @NotNull
-    private static String getDefNameOrUniqueName(Element element, String prefix, Set<String> takenNames) {
+    private static String getDefNameOrUniqueName(Element element, String prefix, Collection<String> takenNames) {
         Node nameNode = element.getElementsByTagName("name").item(0);
         String name = null;
 
@@ -249,7 +265,7 @@ public class XMLConfigParser {
     }
 
     @NotNull
-    private static String getUniqueName(String prefix, Set<String> takenNames) {
+    private static String getUniqueName(String prefix, Collection<String> takenNames) {
         int i = 1;
         while (i < Integer.MAX_VALUE) {
             String name = String.format("%s %d", prefix, i);

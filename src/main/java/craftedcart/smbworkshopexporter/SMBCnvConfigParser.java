@@ -53,22 +53,22 @@ public class SMBCnvConfigParser {
 
                 if (Objects.equals(m.group(3), "pos")) { //Position
                     if (Objects.equals(m.group(4), "x")) {
-                        start.posX = Float.parseFloat(m.group(5));
+                        start.pos.x = Float.parseFloat(m.group(5));
                     } else if (Objects.equals(m.group(4), "y")) {
-                        start.posY = Float.parseFloat(m.group(5));
+                        start.pos.y = Float.parseFloat(m.group(5));
                     } else if (Objects.equals(m.group(4), "z")) {
-                        start.posZ = Float.parseFloat(m.group(5));
+                        start.pos.z = Float.parseFloat(m.group(5));
                     } else {
                         LogHelper.warn(configData.getClass(), String.format("Invalid attribute \"%s\" - In line \"%s\"", m.group(4), line));
                     }
 
                 } else if (Objects.equals(m.group(3), "rot")) { //Rotation
                     if (Objects.equals(m.group(4), "x")) {
-                        start.rotX = Float.parseFloat(m.group(5));
+                        start.rot.x = Float.parseFloat(m.group(5));
                     } else if (Objects.equals(m.group(4), "y")) {
-                        start.rotY = Float.parseFloat(m.group(5));
+                        start.rot.y = Float.parseFloat(m.group(5));
                     } else if (Objects.equals(m.group(4), "z")) {
-                        start.rotZ = Float.parseFloat(m.group(5));
+                        start.rot.z = Float.parseFloat(m.group(5));
                     } else {
                         LogHelper.warn(configData.getClass(), String.format("Invalid attribute \"%s\" - In line \"%s\"", m.group(4), line));
                     }
