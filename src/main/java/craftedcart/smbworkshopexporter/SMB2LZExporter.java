@@ -838,7 +838,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
             }
 
             addVec3f(goal.pos); //Pos X / Y / Z - Offset: 0
-            addVec3f(goal.rot); //Rot X / Y / Z - Offset: 12
+            addVec3fAngle(goal.rot); //Rot X / Y / Z - Offset: 12
 
             addShort(goalType); //Goal type - Offset: 18
         }
