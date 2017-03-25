@@ -126,6 +126,16 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private Map<ItemGroup, Integer> bananaListOffsets = new HashMap<>();
 
     /**
+     * Each ItemGroup's wormhole list offsets
+     */
+    private Map<ItemGroup, Integer> wormholeListOffsets = new HashMap<>();
+
+    /**
+     * Each ItemGroup's wormhole list offsets - Mapped to wormhole names
+     */
+    private Map<String, Integer> wormholeNameMappedOffsets = new HashMap<>();
+
+    /**
      * Start data offset<br>
      * Length: 20
      */
@@ -357,8 +367,17 @@ public class SMB2LZExporter extends AbstractLzExporter {
             nextOffset += BANANA_LENGTH * itemGroup.bananaList.size();
         }
 
-//        globalJamabarDataOffset = ; //TODO
-//        globalBananaDataOffset = ; //TODO
+        //Get offsets for wormhole lists per item group and per wormhole
+        globalWormholeDataOffset = nextOffset;
+        for (ItemGroup itemGroup : configData.itemGroups) {
+            wormholeListOffsets.put(itemGroup, nextOffset);
+
+            for (Map.Entry<String, Wormhole> entry : itemGroup.wormholeList.entrySet()) {
+                wormholeNameMappedOffsets.put(entry.getKey(), nextOffset);
+                nextOffset += WORMHOLE_LENGTH;
+            }
+        }
+
 //        globalFalloutVolumeDataOffset = ; //TODO
 
         backgroundModelNum = configData.backgroundList.size();
@@ -385,6 +404,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         for (ItemGroup itemGroup : configData.itemGroups) writeBumperList(itemGroup);
         for (ItemGroup itemGroup : configData.itemGroups) writeJamabarList(itemGroup);
         for (ItemGroup itemGroup : configData.itemGroups) writeBananaList(itemGroup);
+        for (ItemGroup itemGroup : configData.itemGroups) writeWormholeList(itemGroup);
 
         //Write the file
         FileOutputStream fos = new FileOutputStream(outFile);
@@ -499,7 +519,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         int bananaNum = itemGroup.bananaList.size();
         int bananaDataOffset = 0;
         int wormholeNum = itemGroup.wormholeList.size();
-        int wormholeOffset = 0;
+        int wormholeDataOffset = 0;
         int falloutVolumeNum = itemGroup.falloutVolumeList.size();
         int falloutVolumeDataOffset = 0;
         int levelModelNum = itemGroup.levelModels.size();
@@ -513,7 +533,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         if (bumperNum > 0) bumperDataOffset = bumperListOffsets.get(itemGroup);
         if (jamabarNum > 0) jamabarDataOffset = jamabarListOffsets.get(itemGroup);
         if (bananaNum > 0) bananaDataOffset = bananaListOffsets.get(itemGroup);
-//        if (wormholeNum > 0) wormholeDataOffset = ; //TODO
+        if (wormholeNum > 0) wormholeDataOffset = wormholeListOffsets.get(itemGroup);
 //        if (falloutVolumeNum > 0) falloutVolumeDataOffset = ; //TODO
 
         if (itemGroup.animData != null) { //Set variables if animation data exists
@@ -583,7 +603,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         addNull(8); //Unknown / Zero - Offset: 188
 
         addInt(wormholeNum); //Number of wormholes - Offset: 196
-        addInt(wormholeOffset); //Offset to wormhole data list - Offset: 200
+        addInt(wormholeDataOffset); //Offset to wormhole data list - Offset: 200
 
         addNull(8); //Unknown / Zero - Offset: 204
 
@@ -901,12 +921,31 @@ public class SMB2LZExporter extends AbstractLzExporter {
                     break;
             }
 
-
             addVec3f(banana.pos); //Pos X / Y / Z - Offset: 0
 
             addInt(bananaType); //Banana type - Offset: 12
 
 
+        }
+    }
+
+    /**
+     * Writes wormholes
+     *
+     * @param itemGroup The item group to write wormholes for
+     */
+    private void writeWormholeList(ItemGroup itemGroup) {
+        for (Map.Entry<String, Wormhole> entry : itemGroup.wormholeList.entrySet()) {
+            Wormhole wormhole = entry.getValue();
+
+            addInt(0x00000001); //0x00000001 - Offset: 0
+
+            addVec3f(wormhole.pos); //Pos X / Y / Z - Offset: 4
+
+            addVec3fAngle(wormhole.rot); //Rot X / Y / Z - Offset: 16
+            addNull(2); //Padding - Offset: 122
+
+            addInt(wormholeNameMappedOffsets.get(wormhole.destinationName)); //Offset to destination wormhole - Offset: 24
         }
     }
 
