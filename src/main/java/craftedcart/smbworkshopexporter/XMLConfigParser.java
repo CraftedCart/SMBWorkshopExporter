@@ -118,6 +118,13 @@ public class XMLConfigParser {
 
         //TODO: Collision
 
+        //Level Models
+        NodeList levelModelList = itemGroupElement.getElementsByTagName("levelModel");
+        for (int i = 0; i < levelModelList.getLength(); i++) {
+            Element levelModelElement = (Element) levelModelList.item(i);
+            itemGroup.levelModels.add(levelModelElement.getTextContent());
+        }
+
         //Goals
         NodeList goalList = itemGroupElement.getElementsByTagName("goal");
         for (int i = 0; i < goalList.getLength(); i++) {
@@ -170,6 +177,19 @@ public class XMLConfigParser {
             itemGroup.bananaList.put(name, getBanana(bananaElement));
         }
 
+        //Wormholes
+        NodeList wormholeList = itemGroupElement.getElementsByTagName("wormhole");
+        for (int i = 0; i < wormholeList.getLength(); i++) {
+            Element wormholeElement = (Element) wormholeList.item(i);
+
+            Set<ItemGroup> itemGroups = new HashSet<>();
+            itemGroups.addAll(configData.itemGroups);
+            itemGroups.add(itemGroup);
+            String name = getDefNameOrUniqueName(wormholeElement, "Wormhole", getAllNames(itemGroups, configData.startList.keySet()));
+
+            itemGroup.wormholeList.put(name, getWormhole(wormholeElement));
+        }
+
         return itemGroup;
     }
 
@@ -219,6 +239,23 @@ public class XMLConfigParser {
         banana.type = getEnumBananaType(bananaElement);
 
         return banana;
+    }
+
+    private static Wormhole getWormhole(Element wormholeElement) {
+        Wormhole wormhole = new Wormhole();
+
+        wormhole.pos = getPosition(wormholeElement);
+        wormhole.rot = getRotation(wormholeElement);
+
+        Node destinationNode = wormholeElement.getElementsByTagName("destinationName").item(0);
+
+        if (destinationNode != null) {
+            wormhole.destinationName = destinationNode.getTextContent();
+        } else {
+            LogHelper.warn(XMLConfigParser.class, "No destination wormhole specified for wormhole " + wormholeElement.toString());
+        }
+
+        return wormhole;
     }
 
     private static Set<String> getAllNames(Collection<ItemGroup> itemGroups, Collection<String> startListNames) {
@@ -287,13 +324,24 @@ public class XMLConfigParser {
     /**
      * @param element The element
      * @param attrName The attribute name
+     * @return The parsed string value of the attribute, or an empty string if it failed to parse / doesn't exist
+     */
+    private static String getStringAttr(Element element, String attrName) {
+        if (element == null) return null;
+
+        return element.getAttribute(attrName);
+    }
+
+    /**
+     * @param element The element
+     * @param attrName The attribute name
      * @return The parsed integer value of the attribute, or 0 if it failed to parse / doesn't exist
      */
     private static int getIntAttr(Element element, String attrName) {
         if (element == null) return 0;
 
         try {
-            return Integer.parseInt(element.getAttribute("attrName"));
+            return Integer.parseInt(element.getAttribute(attrName));
         } catch (NumberFormatException e) {
             LogHelper.error(XMLConfigParser.class,  String.format("Invalid integer at %s", element.toString()));
         }

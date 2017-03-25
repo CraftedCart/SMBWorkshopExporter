@@ -41,7 +41,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private static final int COLLISION_X_STEP_NUM = 16;
     private static final int COLLISION_Z_STEP_NUM = 16;
 
-
     private List<Byte> outBytes = new ArrayList<>();
 
     private ModelData modelData;
@@ -241,7 +240,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         falloutPosOffset = startDataOffset + START_DATA_LENGTH;
         collisionHeaderOffset = falloutPosOffset + FALLOUT_DATA_LENGTH;
 
-        collisionHeaderNum = configData.itemGroups.size(); //Collision header per animated object + 1 for the static model(s)
+        collisionHeaderNum = configData.itemGroups.size();
         collisionHeadersTotalLength = COLLISION_HEADER_LENGTH * collisionHeaderNum;
         collisionHeadersEndOffset = collisionHeaderOffset + collisionHeadersTotalLength;
 
