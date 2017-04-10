@@ -26,8 +26,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private static final int COLLISION_TRIANGLE_LIST_POINTER_LENGTH = 4;
     private static final int LEVEL_MODEL_OFFSET_TYPE_A_LENGTH = 12;
     private static final int LEVEL_MODEL_OFFSET_TYPE_B_LENGTH = 4;
-    private static final int LEVEL_MODEL_TYPE_A_LENGTH = 16;
-    private static final int LEVEL_MODEL_TYPE_B_LENGTH = 12;
+    private static final int LEVEL_MODEL_TYPE_A_LENGTH = 24;
     private static final int GOAL_LENGTH = 20;
     private static final int BUMPER_LENGTH = 32;
     private static final int JAMABAR_LENGTH = 32;
@@ -86,6 +85,11 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private Map<ItemGroup, Integer> collisionTrianglesListPointersOffsets = new HashMap<>();
 
     /**
+     * Each ItemGroup's level model offset - Type A list offsets
+     */
+    private Map<ItemGroup, Integer> levelModelOffsetListTypeAOffsets = new HashMap<>();
+
+    /**
      * Each ItemGroup's level model offset - Type B list offsets
      */
     private Map<ItemGroup, Integer> levelModelOffsetListTypeBOffsets = new HashMap<>();
@@ -94,11 +98,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
      * Each ItemGroup's model name list offsets
      */
     private Map<ItemGroup, Integer> levelModelNameListOffsets = new HashMap<>();
-
-    /**
-     * Each ItemGroup's level model - Type B list offsets
-     */
-    private Map<ItemGroup, Integer> levelModelListTypeBOffsets = new HashMap<>();
 
     /**
      * Each ItemGroup's level model - Type A list offsets
@@ -305,11 +304,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
         }
 
         for (ItemGroup itemGroup : configData.itemGroups) {
-            levelModelListTypeBOffsets.put(itemGroup, nextOffset);
-            nextOffset += LEVEL_MODEL_TYPE_B_LENGTH * itemGroup.levelModels.size();
-        }
-
-        for (ItemGroup itemGroup : configData.itemGroups) {
             levelModelListTypeAOffsets.put(itemGroup, nextOffset);
             nextOffset += LEVEL_MODEL_TYPE_A_LENGTH * itemGroup.levelModels.size();
         }
@@ -334,8 +328,9 @@ public class SMB2LZExporter extends AbstractLzExporter {
             levelModelOffsetsOffsetTypeB = levelModelOffsetListTypeBOffsets.get(configData.itemGroups.get(0));
         }
 
-        //Skip level model offsets offset type As
+        //Get level model offsets offset type As
         for (ItemGroup itemGroup : configData.itemGroups) {
+            levelModelOffsetListTypeAOffsets.put(itemGroup, nextOffset);
             nextOffset += LEVEL_MODEL_OFFSET_TYPE_A_LENGTH * itemGroup.levelModels.size();
         }
 
@@ -396,7 +391,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
         for (ItemGroup itemGroup : configData.itemGroups) writeCollisionGridTriangleList(itemGroup);
         for (ItemGroup itemGroup : configData.itemGroups) writeCollisionGridTrianglePointerList(itemGroup);
         for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelOffsetTypeBList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelTypeBList(itemGroup);
         for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelTypeAList(itemGroup);
         for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelNameList(itemGroup);
         for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelOffsetTypeAList(itemGroup);
@@ -523,8 +517,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
         int falloutVolumeNum = itemGroup.falloutVolumeList.size();
         int falloutVolumeDataOffset = 0;
         int levelModelNum = itemGroup.levelModels.size();
-//        int levelModelOffsetOffsetsTypeB = levelModelOffsetListTypeBOffsets.get(itemGroup); //TODO: Revert this
-        int levelModelOffsetOffsetsTypeB = 0; //TODO: Set to 0 temporarily as setting this crashes the game for now
+        int levelModelOffsetOffsetsTypeB = levelModelOffsetListTypeBOffsets.get(itemGroup); //TODO: Revert this
+//        int levelModelOffsetOffsetsTypeB = 0; //TODO: Set to 0 temporarily as setting this crashes the game for now
 
         float animLoopTime = 0; //0 if no animation
 
@@ -765,29 +759,14 @@ public class SMB2LZExporter extends AbstractLzExporter {
      * @param itemGroup The item group to write model offsets for
      */
     private void writeLevelModelOffsetTypeBList(ItemGroup itemGroup) {
-        int nextOffset = levelModelListTypeBOffsets.get(itemGroup);
+        int nextOffset = levelModelOffsetListTypeAOffsets.get(itemGroup);
 
         for (String objectName : itemGroup.levelModels) {
             addInt(nextOffset);
-            nextOffset += LEVEL_MODEL_TYPE_B_LENGTH;
+            nextOffset += LEVEL_MODEL_OFFSET_TYPE_A_LENGTH;
         }
     }
 
-    /**
-     * Writes level models - Type B
-     *
-     * @param itemGroup The item group to write models for
-     */
-    private void writeLevelModelTypeBList(ItemGroup itemGroup) {
-        int nextOffset = levelModelListTypeAOffsets.get(itemGroup);
-
-        for (String objectName : itemGroup.levelModels) {
-            addNull(4);
-            addInt(0x00000001);
-            addInt(nextOffset);
-            nextOffset += LEVEL_MODEL_TYPE_A_LENGTH;
-        }
-    }
     /**
      * Writes level models - Type A
      *
@@ -796,11 +775,15 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private void writeLevelModelTypeAList(ItemGroup itemGroup) {
         int nextOffset = levelModelNameListOffsets.get(itemGroup);
 
+        int i = 0;
         for (String objectName : itemGroup.levelModels) {
             addNull(4);
             addInt(nextOffset);
             addNull(8);
+            addNull(4);
+            addInt(0x00000001);
             nextOffset += roundUpNearest4(objectName.length() + 1);
+            i++;
         }
     }
 
