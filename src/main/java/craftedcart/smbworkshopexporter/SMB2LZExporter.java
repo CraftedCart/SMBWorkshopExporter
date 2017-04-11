@@ -20,7 +20,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private static final int FILE_HEADER_LENGTH = 2204;
     private static final int START_DATA_LENGTH = 20;
     private static final int FALLOUT_DATA_LENGTH = 4;
-    private static final int COLLISION_HEADER_LENGTH = 1176;
+    private static final int COLLISION_HEADER_LENGTH = 1180;
     private static final int COLLISION_TRIANGLE_LENGTH = 64;
     private static final int COLLISION_TRIANGLE_INDEX_LENGTH = 2;
     private static final int COLLISION_TRIANGLE_LIST_POINTER_LENGTH = 4;
@@ -602,7 +602,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         addFloat(animLoopTime); //Animation loop time - Offset: 212
 
-        addNull(960); //Unknown / Zero - Offset: 216
+        addNull(964); //Unknown / Zero - Offset: 216
     }
 
     /**
