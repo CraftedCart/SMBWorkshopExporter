@@ -26,7 +26,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private static final int COLLISION_TRIANGLE_LIST_POINTER_LENGTH = 4;
     private static final int LEVEL_MODEL_OFFSET_TYPE_A_LENGTH = 12;
     private static final int LEVEL_MODEL_OFFSET_TYPE_B_LENGTH = 4;
-    private static final int LEVEL_MODEL_TYPE_A_LENGTH = 24;
+    private static final int LEVEL_MODEL_TYPE_A_LENGTH = 16;
     private static final int GOAL_LENGTH = 20;
     private static final int BUMPER_LENGTH = 32;
     private static final int JAMABAR_LENGTH = 32;
@@ -323,7 +323,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
         }
 
         if (configData.itemGroups.size() > 0) {
-//            levelModelOffsetsOffsetTypeA = levelModelOffsetListTypeAOffsets.get(configData.itemGroups.get(0));
             levelModelOffsetsOffsetTypeA = nextOffset;
             levelModelOffsetsOffsetTypeB = levelModelOffsetListTypeBOffsets.get(configData.itemGroups.get(0));
         }
@@ -780,8 +779,6 @@ public class SMB2LZExporter extends AbstractLzExporter {
             addNull(4);
             addInt(nextOffset);
             addNull(8);
-            addNull(4);
-            addInt(0x00000001);
             nextOffset += roundUpNearest4(objectName.length() + 1);
             i++;
         }
