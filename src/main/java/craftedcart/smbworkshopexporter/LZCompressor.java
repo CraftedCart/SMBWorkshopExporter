@@ -1,7 +1,6 @@
 package craftedcart.smbworkshopexporter;
 
 import craftedcart.smbworkshopexporter.util.LZSSDictionary;
-import craftedcart.smbworkshopexporter.util.LogHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;

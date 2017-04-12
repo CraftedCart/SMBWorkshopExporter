@@ -3,7 +3,6 @@ package craftedcart.smbworkshopexporter;
 import craftedcart.smbworkshopexporter.placeables.Start;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.*;
 
 /**
