@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public class XMLConfigParser {
 
-    public static int[] PARSER_VERSION = new int[]{1, 0, 0};
+    public static final int[] PARSER_VERSION = new int[]{1, 0, 0};
 
     public static void parseConfig(ConfigData configData, File configFile) throws IOException, ParserConfigurationException, SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
