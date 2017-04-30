@@ -18,9 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author CraftedCart
@@ -57,7 +55,7 @@ public class XMLConfigParser {
         NodeList startList = root.getElementsByTagName("start");
         if (startList.getLength() > 0) {
             Element startElement = (Element) startList.item(0);
-            String name = getDefNameOrUniqueName(startElement, "Start position", getAllNames(configData.itemGroups, configData.startList.keySet()));
+            String name = getDefNameOrUniqueName(startElement, "Start position", getAllNames(configData.getItemGroupMap(), configData.startList.keySet()));
             configData.startList.put(name, getStart(startElement));
         }
 
@@ -67,8 +65,10 @@ public class XMLConfigParser {
         NodeList itemGroupList = root.getElementsByTagName("itemGroup");
         for (int i = 0; i < itemGroupList.getLength(); i++) {
             Element itemGroupElement = (Element) itemGroupList.item(i);
-            ItemGroup itemGroup = parseItemGroup(itemGroupElement, configData);
-            configData.itemGroups.add(itemGroup);
+
+            String itemGroupName = getDefNameOrUniqueName(itemGroupElement, "Item Group", getAllNames(configData.getItemGroupMap(), configData.startList.keySet()));
+            ItemGroup itemGroup = parseItemGroup(itemGroupElement, itemGroupName, configData);
+            configData.addItemGroup(itemGroupName, itemGroup);
         }
     }
 
@@ -111,8 +111,13 @@ public class XMLConfigParser {
     }
 
     @NotNull
-    private static ItemGroup parseItemGroup(Element itemGroupElement, ConfigData configData) {
+    private static ItemGroup parseItemGroup(Element itemGroupElement, String itemGroupName, ConfigData configData) {
+        Map<String, ItemGroup> allItemGroups = new HashMap<>();
+
         ItemGroup itemGroup = new ItemGroup();
+
+        allItemGroups.putAll(configData.getItemGroupMap());
+        allItemGroups.put(itemGroupName, itemGroup);
 
         itemGroup.rotationCenter = getPosition(getSingleElement(itemGroupElement, "rotationCenter"));
         itemGroup.initialRotation = getPosition(getSingleElement(itemGroupElement, "initialRotation"));
@@ -131,10 +136,7 @@ public class XMLConfigParser {
         for (int i = 0; i < goalList.getLength(); i++) {
             Element goalElement = (Element) goalList.item(i);
 
-            Set<ItemGroup> itemGroups = new HashSet<>();
-            itemGroups.addAll(configData.itemGroups);
-            itemGroups.add(itemGroup);
-            String name = getDefNameOrUniqueName(goalElement, "Goal", getAllNames(itemGroups, configData.startList.keySet()));
+            String name = getDefNameOrUniqueName(goalElement, "Goal", getAllNames(allItemGroups, configData.startList.keySet()));
 
             itemGroup.goalList.put(name, getGoal(goalElement));
         }
@@ -144,10 +146,7 @@ public class XMLConfigParser {
         for (int i = 0; i < bumperList.getLength(); i++) {
             Element bumperElement = (Element) bumperList.item(i);
 
-            Set<ItemGroup> itemGroups = new HashSet<>();
-            itemGroups.addAll(configData.itemGroups);
-            itemGroups.add(itemGroup);
-            String name = getDefNameOrUniqueName(bumperElement, "Bumper", getAllNames(itemGroups, configData.startList.keySet()));
+            String name = getDefNameOrUniqueName(bumperElement, "Bumper", getAllNames(allItemGroups, configData.startList.keySet()));
 
             itemGroup.bumperList.put(name, getBumper(bumperElement));
         }
@@ -157,10 +156,7 @@ public class XMLConfigParser {
         for (int i = 0; i < jamabarList.getLength(); i++) {
             Element jamabarElement = (Element) jamabarList.item(i);
 
-            Set<ItemGroup> itemGroups = new HashSet<>();
-            itemGroups.addAll(configData.itemGroups);
-            itemGroups.add(itemGroup);
-            String name = getDefNameOrUniqueName(jamabarElement, "Jamabar", getAllNames(itemGroups, configData.startList.keySet()));
+            String name = getDefNameOrUniqueName(jamabarElement, "Jamabar", getAllNames(allItemGroups, configData.startList.keySet()));
 
             itemGroup.jamabarList.put(name, getJamabar(jamabarElement));
         }
@@ -170,10 +166,7 @@ public class XMLConfigParser {
         for (int i = 0; i < bananaList.getLength(); i++) {
             Element bananaElement = (Element) bananaList.item(i);
 
-            Set<ItemGroup> itemGroups = new HashSet<>();
-            itemGroups.addAll(configData.itemGroups);
-            itemGroups.add(itemGroup);
-            String name = getDefNameOrUniqueName(bananaElement, "Banana", getAllNames(itemGroups, configData.startList.keySet()));
+            String name = getDefNameOrUniqueName(bananaElement, "Banana", getAllNames(allItemGroups, configData.startList.keySet()));
 
             itemGroup.bananaList.put(name, getBanana(bananaElement));
         }
@@ -183,10 +176,7 @@ public class XMLConfigParser {
         for (int i = 0; i < wormholeList.getLength(); i++) {
             Element wormholeElement = (Element) wormholeList.item(i);
 
-            Set<ItemGroup> itemGroups = new HashSet<>();
-            itemGroups.addAll(configData.itemGroups);
-            itemGroups.add(itemGroup);
-            String name = getDefNameOrUniqueName(wormholeElement, "Wormhole", getAllNames(itemGroups, configData.startList.keySet()));
+            String name = getDefNameOrUniqueName(wormholeElement, "Wormhole", getAllNames(allItemGroups, configData.startList.keySet()));
 
             itemGroup.wormholeList.put(name, getWormhole(wormholeElement));
         }
@@ -259,12 +249,13 @@ public class XMLConfigParser {
         return wormhole;
     }
 
-    private static Set<String> getAllNames(Collection<ItemGroup> itemGroups, Collection<String> startListNames) {
+    private static Set<String> getAllNames(Map<String, ItemGroup> itemGroupMap, Collection<String> startListNames) {
         Set<String> names = new HashSet<>();
 
         names.addAll(startListNames);
+        names.addAll(itemGroupMap.keySet());
 
-        for (ItemGroup itemGroup : itemGroups) {
+        for (ItemGroup itemGroup : itemGroupMap.values()) {
             names.addAll(itemGroup.goalList.keySet());
             names.addAll(itemGroup.bumperList.keySet());
             names.addAll(itemGroup.jamabarList.keySet());

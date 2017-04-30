@@ -21,7 +21,7 @@ public class SMBCnvConfigParser {
         //TODO: Wormholes
 
         //Create static itemGroup
-        configData.itemGroups.add(new ItemGroup());
+        configData.addItemGroup("Static", new ItemGroup());
 
         FileInputStream fis = new FileInputStream(configFile);
         InputStreamReader isr = new InputStreamReader(fis);
@@ -85,12 +85,12 @@ public class SMBCnvConfigParser {
 
                 //Get goal object
                 Goal goal;
-                if (configData.getStaticItemGroup().goalList.containsKey("Goal " + m.group(2))) {
+                if (configData.getFirstItemGroup().goalList.containsKey("Goal " + m.group(2))) {
                     //ID already exists
-                    goal = configData.getStaticItemGroup().goalList.get("Goal " + m.group(2));
+                    goal = configData.getFirstItemGroup().goalList.get("Goal " + m.group(2));
                 } else {
                     goal = new Goal();
-                    configData.getStaticItemGroup().goalList.put("Goal " + m.group(2), goal);
+                    configData.getFirstItemGroup().goalList.put("Goal " + m.group(2), goal);
                 }
 
                 if (Objects.equals(m.group(3), "pos")) { //Position
@@ -138,12 +138,12 @@ public class SMBCnvConfigParser {
 
                 //Get bumper object
                 Bumper bumper;
-                if (configData.getStaticItemGroup().bumperList.containsKey("Bumper " + m.group(2))) {
+                if (configData.getFirstItemGroup().bumperList.containsKey("Bumper " + m.group(2))) {
                     //ID already exists
-                    bumper = configData.getStaticItemGroup().bumperList.get("Bumper " + m.group(2));
+                    bumper = configData.getFirstItemGroup().bumperList.get("Bumper " + m.group(2));
                 } else {
                     bumper = new Bumper();
-                    configData.getStaticItemGroup().bumperList.put("Bumper " + m.group(2), bumper);
+                    configData.getFirstItemGroup().bumperList.put("Bumper " + m.group(2), bumper);
                 }
 
                 if (Objects.equals(m.group(3), "pos")) { //Position
@@ -191,12 +191,12 @@ public class SMBCnvConfigParser {
 
                 //Get jamabar object
                 Jamabar jamabar;
-                if (configData.getStaticItemGroup().jamabarList.containsKey("Jamabar " + m.group(2))) {
+                if (configData.getFirstItemGroup().jamabarList.containsKey("Jamabar " + m.group(2))) {
                     //ID already exists
-                    jamabar = configData.getStaticItemGroup().jamabarList.get("Jamabar " + m.group(2));
+                    jamabar = configData.getFirstItemGroup().jamabarList.get("Jamabar " + m.group(2));
                 } else {
                     jamabar = new Jamabar();
-                    configData.getStaticItemGroup().jamabarList.put("Jamabar " + m.group(2), jamabar);
+                    configData.getFirstItemGroup().jamabarList.put("Jamabar " + m.group(2), jamabar);
                 }
 
                 if (Objects.equals(m.group(3), "pos")) { //Position
@@ -244,12 +244,12 @@ public class SMBCnvConfigParser {
 
                 //Get banana object
                 Banana banana;
-                if (configData.getStaticItemGroup().bananaList.containsKey("Banana " + m.group(2))) {
+                if (configData.getFirstItemGroup().bananaList.containsKey("Banana " + m.group(2))) {
                     //ID already exists
-                    banana = configData.getStaticItemGroup().bananaList.get("Banana " + m.group(2));
+                    banana = configData.getFirstItemGroup().bananaList.get("Banana " + m.group(2));
                 } else {
                     banana = new Banana();
-                    configData.getStaticItemGroup().bananaList.put("Banana " + m.group(2), banana);
+                    configData.getFirstItemGroup().bananaList.put("Banana " + m.group(2), banana);
                 }
 
                 if (Objects.equals(m.group(3), "pos")) { //Position
@@ -324,7 +324,7 @@ public class SMBCnvConfigParser {
                 }
 
                 //Get ConfigAnimData object
-                ItemGroup itemGroup = configData.getConfigIndexedItemGroup(m.group(2));
+                ItemGroup itemGroup = configData.getItemGroup(m.group(2));
                 ConfigAnimData ad = itemGroup.animData;
 
                 if (ad == null) {

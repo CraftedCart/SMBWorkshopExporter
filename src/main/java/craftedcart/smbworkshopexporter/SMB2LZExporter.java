@@ -249,7 +249,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         falloutPosOffset = startDataOffset + START_DATA_LENGTH;
         collisionHeaderOffset = falloutPosOffset + FALLOUT_DATA_LENGTH;
 
-        collisionHeaderNum = configData.itemGroups.size();
+        collisionHeaderNum = configData.getItemGroupMap().values().size();
         collisionHeadersTotalLength = COLLISION_HEADER_LENGTH * collisionHeaderNum;
         collisionHeadersEndOffset = collisionHeaderOffset + collisionHeadersTotalLength;
 
@@ -262,7 +262,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
 
         int nextOffset = collisionHeadersEndOffset;
 
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             globalGoalNum += itemGroup.goalList.size();
             globalBumperNum += itemGroup.bumperList.size();
             globalJamabarNum += itemGroup.jamabarList.size();
@@ -278,7 +278,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         nextOffset = roundUpNearest4(nextOffset);
 
         //Get offsets for collision triangle indices per item group
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             collisionTriangleListListOffsets.put(itemGroup, nextOffset);
 
             int singlePointerListLength = 0;
@@ -293,23 +293,23 @@ public class SMB2LZExporter extends AbstractLzExporter {
         }
 
         //Get offsets for collision triangle indices lists per item group
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             collisionTrianglesListPointersOffsets.put(itemGroup, nextOffset);
             nextOffset += COLLISION_TRIANGLE_LIST_POINTER_LENGTH * getCollisionBlocksNum();
         }
 
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             levelModelOffsetListTypeBOffsets.put(itemGroup, nextOffset);
             nextOffset += LEVEL_MODEL_OFFSET_TYPE_B_LENGTH * itemGroup.levelModels.size();
         }
 
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             levelModelListTypeAOffsets.put(itemGroup, nextOffset);
             nextOffset += LEVEL_MODEL_TYPE_A_LENGTH * itemGroup.levelModels.size();
         }
 
         //Add names of objects
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             levelModelNameListOffsets.put(itemGroup, nextOffset);
 
             for (String objectName : itemGroup.levelModels) {
@@ -322,48 +322,48 @@ public class SMB2LZExporter extends AbstractLzExporter {
             nextOffset += LEVEL_MODEL_TYPE_A_LENGTH;
         }
 
-        if (configData.itemGroups.size() > 0) {
+        if (configData.getItemGroupMap().values().size() > 0) {
             levelModelOffsetsOffsetTypeA = nextOffset;
-            levelModelOffsetsOffsetTypeB = levelModelOffsetListTypeBOffsets.get(configData.itemGroups.get(0));
+            levelModelOffsetsOffsetTypeB = levelModelOffsetListTypeBOffsets.get(configData.getItemGroupMap().entrySet().iterator().next().getValue()); //Get first item
         }
 
         //Get level model offsets offset type As
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             levelModelOffsetListTypeAOffsets.put(itemGroup, nextOffset);
             nextOffset += LEVEL_MODEL_OFFSET_TYPE_A_LENGTH * itemGroup.levelModels.size();
         }
 
         //Get offsets for goal lists per item group
         globalGoalDataOffset = nextOffset;
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             goalListOffsets.put(itemGroup, nextOffset);
             nextOffset += GOAL_LENGTH * itemGroup.goalList.size();
         }
 
         //Get offsets for bumper lists per item group
         globalBumperDataOffset = nextOffset;
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             bumperListOffsets.put(itemGroup, nextOffset);
             nextOffset += BUMPER_LENGTH * itemGroup.bumperList.size();
         }
 
         //Get offsets for jamabar lists per item group
         globalJamabarDataOffset = nextOffset;
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             jamabarListOffsets.put(itemGroup, nextOffset);
             nextOffset += JAMABAR_LENGTH * itemGroup.jamabarList.size();
         }
 
         //Get offsets for banana lists per item group
         globalBananaDataOffset = nextOffset;
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             bananaListOffsets.put(itemGroup, nextOffset);
             nextOffset += BANANA_LENGTH * itemGroup.bananaList.size();
         }
 
         //Get offsets for wormhole lists per item group and per wormhole
         globalWormholeDataOffset = nextOffset;
-        for (ItemGroup itemGroup : configData.itemGroups) {
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) {
             wormholeListOffsets.put(itemGroup, nextOffset);
 
             for (Map.Entry<String, Wormhole> entry : itemGroup.wormholeList.entrySet()) {
@@ -385,19 +385,19 @@ public class SMB2LZExporter extends AbstractLzExporter {
         writeFileHeader();
         writeStartData();
         writeFalloutData();
-        for (ItemGroup itemGroup : configData.itemGroups) writeCollisionHeader(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeCollisionTriangles(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeCollisionGridTriangleList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeCollisionGridTrianglePointerList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelOffsetTypeBList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelTypeAList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelNameList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeLevelModelOffsetTypeAList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeGoalList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeBumperList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeJamabarList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeBananaList(itemGroup);
-        for (ItemGroup itemGroup : configData.itemGroups) writeWormholeList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeCollisionHeader(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeCollisionTriangles(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeCollisionGridTriangleList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeCollisionGridTrianglePointerList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeLevelModelOffsetTypeBList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeLevelModelTypeAList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeLevelModelNameList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeLevelModelOffsetTypeAList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeGoalList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeBumperList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeJamabarList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeBananaList(itemGroup);
+        for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeWormholeList(itemGroup);
 
         //Write the file
         FileOutputStream fos = new FileOutputStream(outFile);

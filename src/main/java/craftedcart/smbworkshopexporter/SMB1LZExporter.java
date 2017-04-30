@@ -34,10 +34,10 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
 
         cfgBytesToWrite =
-                        20 * configData.getStaticItemGroup().goalList.size() +
-                        32 * configData.getStaticItemGroup().bumperList.size() +
-                        32 * configData.getStaticItemGroup().jamabarList.size() +
-                        16 * configData.getStaticItemGroup().bananaList.size();
+                        20 * configData.getFirstItemGroup().goalList.size() +
+                        32 * configData.getFirstItemGroup().bumperList.size() +
+                        32 * configData.getFirstItemGroup().jamabarList.size() +
+                        16 * configData.getFirstItemGroup().bananaList.size();
 
         for (int i = 0; i < modelData.cmnObjs.size(); i++) {
             Obj obj = modelData.cmnObjs.get(i);
@@ -65,7 +65,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[0] = 256;
 
         //Write goals
-        for (Map.Entry<String, Goal> entry : configData.getStaticItemGroup().goalList.entrySet()) {
+        for (Map.Entry<String, Goal> entry : configData.getFirstItemGroup().goalList.entrySet()) {
             Goal goal = entry.getValue();
 
             int type = 'B' << 8;
@@ -94,7 +94,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[1] = (int) (rafConfig.getFilePointer() + 256);
 
         //Bumpers
-        for (Map.Entry<String, Bumper> entry : configData.getStaticItemGroup().bumperList.entrySet()) {
+        for (Map.Entry<String, Bumper> entry : configData.getFirstItemGroup().bumperList.entrySet()) {
             Bumper bumper = entry.getValue();
 
             //Write position
@@ -118,7 +118,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[2] = (int) (rafConfig.getFilePointer() + 256);
 
         //Jamabars
-        for (Map.Entry<String, Jamabar> entry : configData.getStaticItemGroup().jamabarList.entrySet()) {
+        for (Map.Entry<String, Jamabar> entry : configData.getFirstItemGroup().jamabarList.entrySet()) {
             Jamabar jamabar = entry.getValue();
 
             //Write position
@@ -142,7 +142,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[3] = (int) (rafConfig.getFilePointer() + 256);
 
         //Bananas
-        for (Map.Entry<String, Banana> entry : configData.getStaticItemGroup().bananaList.entrySet()) {
+        for (Map.Entry<String, Banana> entry : configData.getFirstItemGroup().bananaList.entrySet()) {
             Banana banana = entry.getValue();
 
             //Write position
@@ -289,7 +289,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         lzWrite(rafOutRaw, 180);
 
         //Write goals
-        int goalCount = configData.getStaticItemGroup().goalList.size();
+        int goalCount = configData.getFirstItemGroup().goalList.size();
         if (goalCount > 0) {
             lzWriteInt(rafOutRaw, goalCount);
             lzWriteInt(rafOutRaw, sectOffsets[0]);
@@ -306,7 +306,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         lzWrite(rafOutRaw, 0);
 
         //Write bumpers
-        int bumperCount = configData.getStaticItemGroup().bumperList.size();
+        int bumperCount = configData.getFirstItemGroup().bumperList.size();
         if (bumperCount > 0) {
             lzWriteInt(rafOutRaw, bumperCount);
             lzWriteInt(rafOutRaw, sectOffsets[1]);
@@ -317,7 +317,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
 
         //Write jamabars
-        int jamabarCount = configData.getStaticItemGroup().jamabarList.size();
+        int jamabarCount = configData.getFirstItemGroup().jamabarList.size();
         if (jamabarCount > 0) {
             lzWriteInt(rafOutRaw, jamabarCount);
             lzWriteInt(rafOutRaw, sectOffsets[2]);
@@ -328,7 +328,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
 
         //Write bananas
-        int bananaCount = configData.getStaticItemGroup().bananaList.size();
+        int bananaCount = configData.getFirstItemGroup().bananaList.size();
         if (bananaCount > 0) {
             lzWriteInt(rafOutRaw, bananaCount);
             lzWriteInt(rafOutRaw, sectOffsets[3]);

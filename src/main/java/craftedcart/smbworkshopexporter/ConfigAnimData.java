@@ -20,13 +20,13 @@ public class ConfigAnimData {
 
     protected Vec3f rotationCenter = new Vec3f();
 
-    protected TreeMap<Float, Float> posXFrames = new TreeMap<>();
-    protected TreeMap<Float, Float> posYFrames = new TreeMap<>();
-    protected TreeMap<Float, Float> posZFrames = new TreeMap<>();
+    @Deprecated protected TreeMap<Float, Float> posXFrames = new TreeMap<>();
+    @Deprecated protected TreeMap<Float, Float> posYFrames = new TreeMap<>();
+    @Deprecated protected TreeMap<Float, Float> posZFrames = new TreeMap<>();
 
-    protected TreeMap<Float, Float> rotXFrames = new TreeMap<>();
-    protected TreeMap<Float, Float> rotYFrames = new TreeMap<>();
-    protected TreeMap<Float, Float> rotZFrames = new TreeMap<>();
+    @Deprecated protected TreeMap<Float, Float> rotXFrames = new TreeMap<>();
+    @Deprecated protected TreeMap<Float, Float> rotYFrames = new TreeMap<>();
+    @Deprecated protected TreeMap<Float, Float> rotZFrames = new TreeMap<>();
 
     protected float loopTime = 1000.0f;
 
@@ -40,75 +40,93 @@ public class ConfigAnimData {
     }
 
     //Pos
+    @Deprecated
     public void setPosXFrame(float time, float pos) {
         posXFrames.put(time, pos);
     }
 
+    @Deprecated
     public void setPosYFrame(float time, float pos) {
         posYFrames.put(time, pos);
     }
 
+    @Deprecated
     public void setPosZFrame(float time, float pos) {
         posZFrames.put(time, pos);
     }
 
+    @Deprecated
     public void removePosXFrame(float time) {
         posXFrames.remove(time);
     }
 
+    @Deprecated
     public void removePosYFrame(float time) {
         posYFrames.remove(time);
     }
 
+    @Deprecated
     public void removePosZFrame(float time) {
         posZFrames.remove(time);
     }
 
+    @Deprecated
     public TreeMap<Float, Float> getPosXFrames() {
         return posXFrames;
     }
 
+    @Deprecated
     public TreeMap<Float, Float> getPosYFrames() {
         return posYFrames;
     }
 
+    @Deprecated
     public TreeMap<Float, Float> getPosZFrames() {
         return posZFrames;
     }
 
     //Rot
+    @Deprecated
     public void setRotXFrame(float time, float rot) {
         rotXFrames.put(time, rot);
     }
 
+    @Deprecated
     public void setRotYFrame(float time, float rot) {
         rotYFrames.put(time, rot);
     }
 
+    @Deprecated
     public void setRotZFrame(float time, float rot) {
         rotZFrames.put(time, rot);
     }
 
+    @Deprecated
     public void removeRotXFrame(float time) {
         rotXFrames.remove(time);
     }
 
+    @Deprecated
     public void removeRotYFrame(float time) {
         rotYFrames.remove(time);
     }
 
+    @Deprecated
     public void removeRotZFrame(float time) {
         rotZFrames.remove(time);
     }
 
+    @Deprecated
     public TreeMap<Float, Float> getRotXFrames() {
         return rotXFrames;
     }
 
+    @Deprecated
     public TreeMap<Float, Float> getRotYFrames() {
         return rotYFrames;
     }
 
+    @Deprecated
     public TreeMap<Float, Float> getRotZFrames() {
         return rotZFrames;
     }
@@ -200,6 +218,7 @@ public class ConfigAnimData {
         LogHelper.info(getClass(), "Finished parsing anim config");
     }
 
+    @Deprecated
     private void insertAnimDataFrame(AnimDataFrame adf) {
         if (adf.posX != null) posXFrames.put(adf.time, adf.posX);
         if (adf.posY != null) posYFrames.put(adf.time, adf.posY);
@@ -210,6 +229,7 @@ public class ConfigAnimData {
         if (adf.rotZ != null) rotZFrames.put(adf.time, adf.rotZ);
     }
 
+    @Deprecated
     class AnimDataFrame {
         float time = 0.0f;
         Float posX;
