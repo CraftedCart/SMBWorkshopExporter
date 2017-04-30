@@ -278,11 +278,14 @@ public class XMLConfigParser {
      */
     @NotNull
     private static String getDefNameOrUniqueName(Element element, String prefix, Collection<String> takenNames) {
-        Node nameNode = element.getElementsByTagName("name").item(0);
+        NodeList children = element.getChildNodes();
         String name = null;
 
-        if (nameNode != null) {
-            name = nameNode.getTextContent();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (Objects.equals(children.item(i).getNodeName(), "name")) {
+                name = children.item(i).getTextContent();
+                break;
+            }
         }
 
         if (name == null || takenNames.contains(name)) {
