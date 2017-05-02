@@ -50,7 +50,13 @@ public class XMLConfigParser {
             }
         }
 
-        //TODO: Background models
+        NodeList bgModelList = root.getElementsByTagName("backgroundModel");
+        for (int i = 0; i < bgModelList.getLength(); i++) {
+            Element bgModelElement = (Element) bgModelList.item(i);
+            String name = getDefNameOrUniqueName(bgModelElement, "SMBWorkshopExporter-Error-BackgroundNotFound", null);
+            configData.backgroundList.add(name);
+            //TODO: Background position, rotation and scale
+        }
 
         NodeList startList = root.getElementsByTagName("start");
         if (startList.getLength() > 0) {
@@ -278,6 +284,10 @@ public class XMLConfigParser {
      */
     @NotNull
     private static String getDefNameOrUniqueName(Element element, String prefix, Collection<String> takenNames) {
+        if (takenNames == null) { //Replace null with empty set
+            takenNames = new HashSet<>();
+        }
+
         NodeList children = element.getChildNodes();
         String name = null;
 

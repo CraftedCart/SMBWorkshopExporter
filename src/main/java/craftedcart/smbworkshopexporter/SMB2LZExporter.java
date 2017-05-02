@@ -32,6 +32,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private static final int JAMABAR_LENGTH = 32;
     private static final int BANANA_LENGTH = 16;
     private static final int WORMHOLE_LENGTH = 28;
+    private static final int BACKGROUND_MODEL_LENGTH = 56;
 
     private static final float COLLISION_X_START = -256;
     private static final float COLLISION_Z_START = -256;
@@ -224,6 +225,11 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private int backgroundModelDataOffset;
 
     /**
+     * Offset to background model names
+     */
+    private int backgroundModelNamesDataOffset;
+
+    /**
      * Number of level models
      */
     private int levelModelNum;
@@ -253,6 +259,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
         collisionHeadersTotalLength = COLLISION_HEADER_LENGTH * collisionHeaderNum;
         collisionHeadersEndOffset = collisionHeaderOffset + collisionHeadersTotalLength;
 
+        backgroundModelNum = configData.backgroundList.size();
         globalGoalNum = 0;
         globalBumperNum = 0;
         globalJamabarNum = 0;
@@ -372,9 +379,21 @@ public class SMB2LZExporter extends AbstractLzExporter {
             }
         }
 
+        //Get offset for background model data
+        backgroundModelDataOffset = nextOffset;
+
+        nextOffset += BACKGROUND_MODEL_LENGTH * backgroundModelNum;
+
+        //Get offset for background model names
+        backgroundModelNamesDataOffset = nextOffset;
+
+        //Add names of background objects
+        for (String objectName : configData.backgroundList) {
+            nextOffset += roundUpNearest4(objectName.length() + 1);
+        }
+
 //        globalFalloutVolumeDataOffset = ; //TODO
 
-        backgroundModelNum = configData.backgroundList.size();
 //        backgroundModelDataOffset = ; //TODO
 
         levelModelNum = modelData.cmnObjs.size() - backgroundModelNum; //Level models = total models - background models
@@ -398,6 +417,8 @@ public class SMB2LZExporter extends AbstractLzExporter {
         for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeJamabarList(itemGroup);
         for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeBananaList(itemGroup);
         for (ItemGroup itemGroup : configData.getItemGroupMap().values()) writeWormholeList(itemGroup);
+        writeBackgroundModelList();
+        writeBackgroundModelNameList();
 
         //Write the file
         FileOutputStream fos = new FileOutputStream(outFile);
@@ -926,6 +947,34 @@ public class SMB2LZExporter extends AbstractLzExporter {
             addNull(2); //Padding - Offset: 122
 
             addInt(wormholeNameMappedOffsets.get(wormhole.destinationName)); //Offset to destination wormhole - Offset: 24
+        }
+    }
+
+    /**
+     * Writes a list of background models for the configData specified in the class
+     */
+    private void writeBackgroundModelList() {
+        for (int i = 0; i < configData.backgroundList.size(); i++) {
+            addInt(0x0000001F); //0x0000001F - Offset: 0
+            addInt(backgroundModelNamesDataOffset + (i * BACKGROUND_MODEL_LENGTH)); //Offset to model name - Offset: 4
+            addNull(4); //Null - Offset: 8
+            addVec3f(new Vec3f()); //X / Y / Z Position - Offset: 12 //TODO: Position
+            addVec3fAngle(new Vec3f()); //X / Y / Z Rotation - Offset: 24 //TODO: Rotation
+            addNull(2); //Padding - Offset: 30
+            addVec3f(new Vec3f(1, 1, 1)); //X / Y / Z Scale - Offset: 32 //TODO: Scale
+            addNull(4); //Offset to BG Animation Header - Offset: 44
+            addNull(4); //Offset to different BG Animation Header - Offset: 48
+            addNull(4); //Offset to mystery 4 - Offset: 52
+        }
+    }
+
+    /**
+     * Writes background model names for the configData specified in the class
+     */
+    private void writeBackgroundModelNameList() {
+        for (String objectName : configData.backgroundList) {
+            addNullTerminatedString(objectName);
+            padTo4ByteAlign();
         }
     }
 
