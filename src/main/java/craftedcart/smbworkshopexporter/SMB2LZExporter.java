@@ -41,7 +41,7 @@ public class SMB2LZExporter extends AbstractLzExporter {
     private static final int COLLISION_X_STEP_NUM = 16;
     private static final int COLLISION_Z_STEP_NUM = 16;
 
-    private List<Byte> outBytes = new ArrayList<>();
+    private List<Byte> outBytes = new ArrayList<>(1000000); // Around 1 MB
 
     private ModelData modelData;
     private ConfigData configData;
@@ -424,9 +424,11 @@ public class SMB2LZExporter extends AbstractLzExporter {
         FileOutputStream fos = new FileOutputStream(outFile);
         BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-        for (Byte b : outBytes) {
-            bos.write(b);
+        byte[] finalByteArray = new byte[outBytes.size()];
+        for(int i = 0; i < outBytes.size(); i++){
+            finalByteArray[i] = outBytes.get(i);
         }
+        bos.write(finalByteArray);
 
         bos.close();
         fos.close();
