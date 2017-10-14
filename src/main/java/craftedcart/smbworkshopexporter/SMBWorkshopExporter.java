@@ -173,20 +173,23 @@ public class SMBWorkshopExporter {
             }
 
             try (RandomAccessFile raw = new RandomAccessFile(outputFile, "r");
-                    RandomAccessFile comp = new RandomAccessFile(outFile, "rw")) {
+                 RandomAccessFile comp = new RandomAccessFile(outFile, "rw")) {
 
-                final List<Byte> contents = new ArrayList<>();
-                while (raw.getFilePointer() < raw.length()) {
-                    contents.add(raw.readByte());
+                final byte[] byteArrayb = new byte[(int)raw.length()];
+                final Byte[] byteArray = new Byte[(int)raw.length()];
+
+                raw.read(byteArrayb);
+                for(int i = 0; i < byteArrayb.length; i++){
+                    byteArray[i] = byteArrayb[i];
                 }
 
-                final Byte[] byteArray = contents.toArray(new Byte[contents.size()]);
                 List<Byte> bl = (new LZCompressor()).compress(byteArray);
 
-                for (Byte c : bl) {
-                    comp.write(c);
+                final byte[] finalByteArray = new byte[bl.size()];
+                for(int i = 0; i < bl.size(); i++){
+                    finalByteArray[i] = bl.get(i);
                 }
-
+                comp.write(finalByteArray);
             } catch (IOException e) {
                 if (e instanceof FileNotFoundException) {
                     LogHelper.fatal(SMBWorkshopExporter.class, "LZ file not found!");

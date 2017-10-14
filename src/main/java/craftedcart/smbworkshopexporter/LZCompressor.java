@@ -47,16 +47,16 @@ public class LZCompressor {
         }
 
         //Output data
-        List<Byte> output = new ArrayList<>();
+        List<Byte> output = new ArrayList<>(data.length);
 
         int i = 0;
         int dataSize = data.length;
         progressMax = dataSize + 8;
 
-        while (i < dataSize) {
+        //Accumulated output chunk
+        List<Byte> accum = new ArrayList<>(16);
 
-            //Accumulated output chunk
-            List<Byte> accum = new ArrayList<>();
+        while (i < dataSize) {
 
             //Process 8 literals or references at a time
             int flags = 0;
@@ -104,6 +104,7 @@ public class LZCompressor {
             //Chunk complete, add to output0
             output.add((byte) flags);
             output.addAll(accum);
+            accum.clear();
 
             progress = i;
         }
