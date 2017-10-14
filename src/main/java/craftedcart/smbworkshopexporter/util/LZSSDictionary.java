@@ -21,14 +21,14 @@ public class LZSSDictionary {
 
     public LZSSDictionary() {
         //For each reference length there is one dictionary mapping substrings to dictionary offsets
-        d = new ArrayList<>();
+        d = new ArrayList<>(MAX_REF_LEN + 1);
         for (int i = 0; i < MAX_REF_LEN + 1; i++) {
             d.add(new HashMap<>());
         }
 
         //For each reference length there is also a reverse dictionary mapping dictionary offsets to substrings
         //This makes removing dictionary entries much more efficient
-        r = new ArrayList<>();
+        r = new ArrayList<>(MAX_REF_LEN + 1);
         for (int i = 0; i < MAX_REF_LEN + 1; i++) {
             r.add(new HashMap<>());
         }
