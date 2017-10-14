@@ -1,8 +1,8 @@
 package craftedcart.smbworkshopexporter;
 
+import craftedcart.smbworkshopexporter.placeables.*;
 import craftedcart.smbworkshopexporter.util.EnumLZExportTask;
 import craftedcart.smbworkshopexporter.util.LogHelper;
-import craftedcart.smbworkshopexporter.util.TaskDoneAction;
 import craftedcart.smbworkshopexporter.util.Vec3f;
 
 import java.io.File;
@@ -34,10 +34,10 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
 
         cfgBytesToWrite =
-                        20 * configData.goalList.size() +
-                        32 * configData.bumperList.size() +
-                        32 * configData.jamabarList.size() +
-                        16 * configData.bananaList.size();
+                        20 * configData.getFirstItemGroup().goalList.size() +
+                        32 * configData.getFirstItemGroup().bumperList.size() +
+                        32 * configData.getFirstItemGroup().jamabarList.size() +
+                        16 * configData.getFirstItemGroup().bananaList.size();
 
         for (int i = 0; i < modelData.cmnObjs.size(); i++) {
             Obj obj = modelData.cmnObjs.get(i);
@@ -65,28 +65,28 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[0] = 256;
 
         //Write goals
-        for (Map.Entry<String, ConfigData.Goal> entry : configData.goalList.entrySet()) {
-            ConfigData.Goal goal = entry.getValue();
+        for (Map.Entry<String, Goal> entry : configData.getFirstItemGroup().goalList.entrySet()) {
+            Goal goal = entry.getValue();
 
             int type = 'B' << 8;
 
-            if (goal.type == 0) {
+            if (goal.type == Goal.EnumGoalType.BLUE) {
                 type = 'B' << 8;
-            } else if (goal.type == 1) {
+            } else if (goal.type == Goal.EnumGoalType.GREEN) {
                 type = 'G' << 8;
-            } else if (goal.type == 2) {
+            } else if (goal.type == Goal.EnumGoalType.RED) {
                 type = 'R' << 8;
             }
 
             //Write position
-            cfgWriteFloat(rafConfig, goal.posX);
-            cfgWriteFloat(rafConfig, goal.posY);
-            cfgWriteFloat(rafConfig, goal.posZ);
+            cfgWriteFloat(rafConfig, goal.pos.x);
+            cfgWriteFloat(rafConfig, goal.pos.y);
+            cfgWriteFloat(rafConfig, goal.pos.z);
 
             //Write rotation
-            cfgWriteShort(rafConfig, (cnvAngle(goal.rotX)));
-            cfgWriteShort(rafConfig, (cnvAngle(goal.rotY)));
-            cfgWriteShort(rafConfig, (cnvAngle(goal.rotZ)));
+            cfgWriteShort(rafConfig, (cnvAngle(goal.rot.x)));
+            cfgWriteShort(rafConfig, (cnvAngle(goal.rot.y)));
+            cfgWriteShort(rafConfig, (cnvAngle(goal.rot.z)));
 
             //Write type
             cfgWriteShort(rafConfig, type);
@@ -94,64 +94,77 @@ public class SMB1LZExporter extends AbstractLzExporter {
         sectOffsets[1] = (int) (rafConfig.getFilePointer() + 256);
 
         //Bumpers
-        for (Map.Entry<String, ConfigData.Bumper> entry : configData.bumperList.entrySet()) {
-            ConfigData.Bumper bumper = entry.getValue();
+        for (Map.Entry<String, Bumper> entry : configData.getFirstItemGroup().bumperList.entrySet()) {
+            Bumper bumper = entry.getValue();
 
             //Write position
-            cfgWriteFloat(rafConfig, bumper.posX);
-            cfgWriteFloat(rafConfig, bumper.posY);
-            cfgWriteFloat(rafConfig, bumper.posZ);
+            cfgWriteFloat(rafConfig, bumper.pos.x);
+            cfgWriteFloat(rafConfig, bumper.pos.y);
+            cfgWriteFloat(rafConfig, bumper.pos.z);
 
             //Write rotation
-            cfgWriteShort(rafConfig, (cnvAngle(bumper.rotX)));
-            cfgWriteShort(rafConfig, (cnvAngle(bumper.rotY)));
-            cfgWriteShort(rafConfig, (cnvAngle(bumper.rotZ)));
+            cfgWriteShort(rafConfig, (cnvAngle(bumper.rot.x)));
+            cfgWriteShort(rafConfig, (cnvAngle(bumper.rot.z)));
+            cfgWriteShort(rafConfig, (cnvAngle(bumper.rot.z)));
 
             cfgWrite(rafConfig, 0);
             cfgWrite(rafConfig, 0);
 
             //Write scale
-            cfgWriteFloat(rafConfig, bumper.sclX);
-            cfgWriteFloat(rafConfig, bumper.sclY);
-            cfgWriteFloat(rafConfig, bumper.sclZ);
+            cfgWriteFloat(rafConfig, bumper.scl.x);
+            cfgWriteFloat(rafConfig, bumper.scl.y);
+            cfgWriteFloat(rafConfig, bumper.scl.z);
         }
         sectOffsets[2] = (int) (rafConfig.getFilePointer() + 256);
 
         //Jamabars
-        for (Map.Entry<String, ConfigData.Jamabar> entry : configData.jamabarList.entrySet()) {
-            ConfigData.Jamabar jamabar = entry.getValue();
+        for (Map.Entry<String, Jamabar> entry : configData.getFirstItemGroup().jamabarList.entrySet()) {
+            Jamabar jamabar = entry.getValue();
 
             //Write position
-            cfgWriteFloat(rafConfig, jamabar.posX);
-            cfgWriteFloat(rafConfig, jamabar.posY);
-            cfgWriteFloat(rafConfig, jamabar.posZ);
+            cfgWriteFloat(rafConfig, jamabar.pos.x);
+            cfgWriteFloat(rafConfig, jamabar.pos.y);
+            cfgWriteFloat(rafConfig, jamabar.pos.z);
 
             //Write rotation
-            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotX)));
-            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotY)));
-            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rotZ)));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rot.x)));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rot.y)));
+            cfgWriteShort(rafConfig, (cnvAngle(jamabar.rot.z)));
 
             cfgWrite(rafConfig, 0);
             cfgWrite(rafConfig, 0);
 
             //Write scale
-            cfgWriteFloat(rafConfig, jamabar.sclX);
-            cfgWriteFloat(rafConfig, jamabar.sclY);
-            cfgWriteFloat(rafConfig, jamabar.sclZ);
+            cfgWriteFloat(rafConfig, jamabar.scl.x);
+            cfgWriteFloat(rafConfig, jamabar.scl.y);
+            cfgWriteFloat(rafConfig, jamabar.scl.z);
         }
         sectOffsets[3] = (int) (rafConfig.getFilePointer() + 256);
 
         //Bananas
-        for (Map.Entry<String, ConfigData.Banana> entry : configData.bananaList.entrySet()) {
-            ConfigData.Banana banana = entry.getValue();
+        for (Map.Entry<String, Banana> entry : configData.getFirstItemGroup().bananaList.entrySet()) {
+            Banana banana = entry.getValue();
 
             //Write position
-            cfgWriteFloat(rafConfig, banana.posX);
-            cfgWriteFloat(rafConfig, banana.posY);
-            cfgWriteFloat(rafConfig, banana.posZ);
+            cfgWriteFloat(rafConfig, banana.pos.x);
+            cfgWriteFloat(rafConfig, banana.pos.y);
+            cfgWriteFloat(rafConfig, banana.pos.z);
 
             //Write type
-            cfgWriteInt(rafConfig, banana.type);
+            int bananaType;
+            switch (banana.type) {
+                case SINGLE:
+                    bananaType = 0;
+                    break;
+                case BUNCH:
+                    bananaType = 1;
+                    break;
+                default: //Shouldn't happen, but default to single
+                    bananaType = 0;
+                    break;
+            }
+
+            cfgWriteInt(rafConfig, bananaType);
         }
 
         rafConfig.close();
@@ -171,10 +184,10 @@ public class SMB1LZExporter extends AbstractLzExporter {
             for (int j = 0; j < obj.tris.size(); j++) {
                 Triangle tri = obj.tris.get(j);
 
-//                Vec3f na = new Vec3f(modelData.cmnVerticies.get(tri.vna - 1).x, modelData.cmnVerticies.get(tri.vna - 1).y, modelData.cmnVerticies.get(tri.vna - 1).z);
-                Vec3f a = new Vec3f(modelData.cmnVerticies.get(tri.va - 1).x, modelData.cmnVerticies.get(tri.va - 1).y, modelData.cmnVerticies.get(tri.va - 1).z);
-                Vec3f b = new Vec3f(modelData.cmnVerticies.get(tri.vb - 1).x, modelData.cmnVerticies.get(tri.vb - 1).y, modelData.cmnVerticies.get(tri.vb - 1).z);
-                Vec3f c = new Vec3f(modelData.cmnVerticies.get(tri.vc - 1).x, modelData.cmnVerticies.get(tri.vc - 1).y, modelData.cmnVerticies.get(tri.vc - 1).z);
+//                Vec3f na = new Vec3f(modelData.cmnVerticies.get(tri.vertANorm - 1).x, modelData.cmnVerticies.get(tri.vertANorm - 1).y, modelData.cmnVerticies.get(tri.vertANorm - 1).z);
+                Vec3f a = new Vec3f(modelData.cmnVerticies.get(tri.vertA - 1).x, modelData.cmnVerticies.get(tri.vertA - 1).y, modelData.cmnVerticies.get(tri.vertA - 1).z);
+                Vec3f b = new Vec3f(modelData.cmnVerticies.get(tri.vertB - 1).x, modelData.cmnVerticies.get(tri.vertB - 1).y, modelData.cmnVerticies.get(tri.vertB - 1).z);
+                Vec3f c = new Vec3f(modelData.cmnVerticies.get(tri.vertC - 1).x, modelData.cmnVerticies.get(tri.vertC - 1).y, modelData.cmnVerticies.get(tri.vertC - 1).z);
 //                if (a.y < configData.falloutPlane) configData.falloutPlane = a.y;
 //                if (b.y < configData.falloutPlane) configData.falloutPlane = b.y;
 //                if (c.y < configData.falloutPlane) configData.falloutPlane = c.y;
@@ -276,7 +289,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         lzWrite(rafOutRaw, 180);
 
         //Write goals
-        int goalCount = configData.goalList.size();
+        int goalCount = configData.getFirstItemGroup().goalList.size();
         if (goalCount > 0) {
             lzWriteInt(rafOutRaw, goalCount);
             lzWriteInt(rafOutRaw, sectOffsets[0]);
@@ -293,7 +306,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         lzWrite(rafOutRaw, 0);
 
         //Write bumpers
-        int bumperCount = configData.bumperList.size();
+        int bumperCount = configData.getFirstItemGroup().bumperList.size();
         if (bumperCount > 0) {
             lzWriteInt(rafOutRaw, bumperCount);
             lzWriteInt(rafOutRaw, sectOffsets[1]);
@@ -304,7 +317,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
 
         //Write jamabars
-        int jamabarCount = configData.jamabarList.size();
+        int jamabarCount = configData.getFirstItemGroup().jamabarList.size();
         if (jamabarCount > 0) {
             lzWriteInt(rafOutRaw, jamabarCount);
             lzWriteInt(rafOutRaw, sectOffsets[2]);
@@ -315,7 +328,7 @@ public class SMB1LZExporter extends AbstractLzExporter {
         }
 
         //Write bananas
-        int bananaCount = configData.bananaList.size();
+        int bananaCount = configData.getFirstItemGroup().bananaList.size();
         if (bananaCount > 0) {
             lzWriteInt(rafOutRaw, bananaCount);
             lzWriteInt(rafOutRaw, sectOffsets[3]);
@@ -341,14 +354,14 @@ public class SMB1LZExporter extends AbstractLzExporter {
             lzWrite(rafOutRaw, 0);
         }
         //Write start pos
-        ConfigData.Start start = configData.startList.entrySet().iterator().next().getValue();
-        lzWriteFloat(rafOutRaw, start.posX);
-        lzWriteFloat(rafOutRaw, start.posY);
-        lzWriteFloat(rafOutRaw, start.posZ);
+        Start start = configData.startList.entrySet().iterator().next().getValue();
+        lzWriteFloat(rafOutRaw, start.pos.x);
+        lzWriteFloat(rafOutRaw, start.pos.y);
+        lzWriteFloat(rafOutRaw, start.pos.z);
 
-        lzWriteShort(rafOutRaw, (cnvAngle(start.rotX)));
-        lzWriteShort(rafOutRaw, (cnvAngle(start.rotY)));
-        lzWriteShort(rafOutRaw, (cnvAngle(start.rotZ)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rot.x)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rot.y)));
+        lzWriteShort(rafOutRaw, (cnvAngle(start.rot.z)));
 
         lzWrite(rafOutRaw, 0);
         lzWrite(rafOutRaw, 0);

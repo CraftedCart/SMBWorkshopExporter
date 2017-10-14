@@ -3,12 +3,15 @@ package craftedcart.smbworkshopexporter;
 
 import craftedcart.smbworkshopexporter.util.LogHelper;
 import org.apache.commons.cli.*;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -106,7 +109,7 @@ public class SMBWorkshopExporter {
         LogHelper.info(SMBWorkshopExporter.class, "Parsing OBJ File...");
         ModelData modelData = new ModelData();
         try {
-            modelData.parseObj(new File(modelFilePath));
+            modelData.parseObj(Collections.singleton(new File(modelFilePath)));
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "OBJ file not found!");
@@ -124,7 +127,11 @@ public class SMBWorkshopExporter {
         LogHelper.info(SMBWorkshopExporter.class, "Parsing Config File...");
         ConfigData configData = new ConfigData();
         try {
-            configData.parseConfig(new File(configFilePath));
+            if (configFilePath.toUpperCase().endsWith(".XML")) {
+                XMLConfigParser.parseConfig(configData, new File(configFilePath));
+            } else {
+                SMBCnvConfigParser.parseConfig(configData, new File(configFilePath));
+            }
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
                 LogHelper.fatal(SMBWorkshopExporter.class, "Config file not found!");
@@ -139,6 +146,10 @@ public class SMBWorkshopExporter {
             System.exit(0);
         } catch (IllegalStateException e) {
             LogHelper.fatal(SMBWorkshopExporter.class, "Config file: Invalid pattern!");
+            LogHelper.fatal(SMBWorkshopExporter.class, e);
+            System.exit(0);
+        } catch (SAXException | ParserConfigurationException e) {
+            LogHelper.fatal(SMBWorkshopExporter.class, "Cannot parse config file!");
             LogHelper.fatal(SMBWorkshopExporter.class, e);
             System.exit(0);
         }
@@ -173,20 +184,23 @@ public class SMBWorkshopExporter {
             }
 
             try (RandomAccessFile raw = new RandomAccessFile(outputFile, "r");
-                    RandomAccessFile comp = new RandomAccessFile(outFile, "rw")) {
+                 RandomAccessFile comp = new RandomAccessFile(outFile, "rw")) {
 
-                final List<Byte> contents = new ArrayList<>();
-                while (raw.getFilePointer() < raw.length()) {
-                    contents.add(raw.readByte());
+                final byte[] byteArrayb = new byte[(int)raw.length()];
+                final Byte[] byteArray = new Byte[(int)raw.length()];
+
+                raw.read(byteArrayb);
+                for(int i = 0; i < byteArrayb.length; i++){
+                    byteArray[i] = byteArrayb[i];
                 }
 
-                final Byte[] byteArray = contents.toArray(new Byte[contents.size()]);
                 List<Byte> bl = (new LZCompressor()).compress(byteArray);
 
-                for (Byte c : bl) {
-                    comp.write(c);
+                final byte[] finalByteArray = new byte[bl.size()];
+                for(int i = 0; i < bl.size(); i++){
+                    finalByteArray[i] = bl.get(i);
                 }
-
+                comp.write(finalByteArray);
             } catch (IOException e) {
                 if (e instanceof FileNotFoundException) {
                     LogHelper.fatal(SMBWorkshopExporter.class, "LZ file not found!");
